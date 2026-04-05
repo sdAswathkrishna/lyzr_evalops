@@ -1,0 +1,114 @@
+[
+  {
+    "id": "78dce567-057e-4457-b100-2ed39830366a",
+    "input": {
+      "input": "How do I export my data to JSON format?"
+    },
+    "reference_output": {
+      "output": "Go to Settings \u2192 Data \u2192 Export to download your data. JSON, CSV, and Parquet formats are supported. Exports are processed asynchronously and emailed to you when ready."
+    },
+    "metadata": {
+      "source": "manual_curation",
+      "category": "data",
+      "dataset_split": [
+        "base"
+      ]
+    }
+  },
+  {
+    "id": "d22bd14b-5d87-427d-95c8-0d411ca0e18e",
+    "input": {
+      "input": "I haven't received my password reset email."
+    },
+    "reference_output": {
+      "output": "Password reset emails are sent within 2 minutes. Please check your spam folder. If the issue persists, I recommend creating a support ticket."
+    },
+    "metadata": {
+      "source": "manual_curation",
+      "category": "auth",
+      "dataset_split": [
+        "base"
+      ]
+    }
+  },
+  {
+    "id": "dbed33d3-ea29-410d-a50b-344032ffb12f",
+    "input": {
+      "input": "My app keeps getting HTTP 429 errors, can you help?"
+    },
+    "reference_output": {
+      "output": "HTTP 429 means you've exceeded your API rate limit. The Pro plan limit is 10,000 calls/day. You can request a temporary increase via Settings \u2192 API \u2192 Request Increase."
+    },
+    "metadata": {
+      "source": "manual_curation",
+      "category": "api",
+      "dataset_split": [
+        "base"
+      ]
+    }
+  },
+  {
+    "id": "102b211a-4e9e-4c0f-b0aa-72adb611ee55",
+    "input": {
+      "input": "What's the status of ticket TKT-003?"
+    },
+    "reference_output": {
+      "output": "Ticket TKT-003 is currently in Pending status. The issue is SSO configuration help and it was opened 1 day ago."
+    },
+    "metadata": {
+      "source": "manual_curation",
+      "category": "ticketing",
+      "dataset_split": [
+        "base"
+      ]
+    }
+  },
+  {
+    "id": "7c4f5a36-0974-4f5e-8784-f8fa12b47ded",
+    "input": {
+      "input": "I need to set up SSO with Okta for my enterprise."
+    },
+    "reference_output": {
+      "output": "SSO is available on Enterprise plans. Okta is a supported provider along with Azure AD and Google Workspace. Follow the configuration guide at docs.example.com/sso."
+    },
+    "metadata": {
+      "source": "manual_curation",
+      "category": "sso",
+      "dataset_split": [
+        "base"
+      ]
+    }
+  },
+  {
+    "id": "14ae2aff-5935-494b-bc0e-40afa29b1af2",
+    "input": {
+      "input": "What is the API rate limit for the Pro plan?"
+    },
+    "reference_output": {
+      "output": "The Pro plan allows 10,000 API calls per day. If you exceed this, you will receive an HTTP 429 error. You can request a temporary increase via Settings \u2192 API \u2192 Request Increase."
+    },
+    "metadata": {
+      "source": "manual_curation",
+      "category": "api",
+      "dataset_split": [
+        "base"
+      ]
+    }
+  },
+  {
+    "id": "ae4b3a8a-5c86-43c8-8119-e38792a72f2a",
+    "input": {
+      "input": "How do I update my billing information?"
+    },
+    "reference_output": {
+      "output": "To update your billing information, go to Settings \u2192 Billing in your account. To change your credit card, navigate to Settings \u2192 Payment Methods. Invoices are generated on the 1st of each month."
+    },
+    "metadata": {
+      "source": "manual_curation",
+      "category": "billing",
+      "dataset_split": [
+        "base"
+      ]
+    }
+  }
+]

@@ -1,0 +1,45 @@
+{
+  "langsmith": {
+    "experiment_id": "03d185b5-9042-4818-94bd-7e18c49b2c96",
+    "scores": {
+      "correctness": 1.0,
+      "helpfulness": 0.843,
+      "conciseness": 0.843
+    }
+  },
+  "lyzr_v1": {
+    "experiment_id": "f9c92e60-8f38-456e-9974-b0c8cf2bb390",
+    "scores": {
+      "correctness": 1.0,
+      "helpfulness": 0.857,
+      "conciseness": 0.929
+    }
+  },
+  "lyzr_v2": {
+    "experiment_id": "54ac6789-84cf-4dc2-ad7a-a9ef98096a7b",
+    "scores": {
+      "correctness": 1.0,
+      "helpfulness": 0.843,
+      "conciseness": 0.971
+    }
+  },
+  "decision": {
+    "exp_a": {
+      "correctness": 1.0,
+      "helpfulness": 0.857,
+      "conciseness": 0.929
+    },
+    "exp_b": {
+      "correctness": 1.0,
+      "helpfulness": 0.843,
+      "conciseness": 0.971
+    },
+    "deltas": {
+      "correctness": 0.0,
+      "helpfulness": -0.014,
+      "conciseness": 0.042
+    },
+    "verdict": "HOLD",
+    "reason": "Mixed results: 1 better, 0 worse. Iterate before promoting."
+  }
+}

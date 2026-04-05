@@ -1,0 +1,21 @@
+name: lyzr-evalops
+channels:
+  - defaults
+  - conda-forge
+dependencies:
+  - python=3.11
+  - pip
+  - pip:
+      # LangChain core
+      - langchain==0.3.25
+      - langchain-openai==0.3.16
+      - langchain-community==0.3.24
+
+      # LangSmith — tracing, datasets, evals
+      - langsmith==0.3.42
+
+      # Environment & utilities
+      - python-dotenv==1.1.0
+      - rich==13.9.4          # pretty terminal output
+      - tabulate==0.9.0       # table comparisons
+      - pandas==2.2.3

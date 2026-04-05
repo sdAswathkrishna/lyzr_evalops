@@ -1,0 +1,134 @@
+ACME Platform — Frequently Asked Questions (FAQ)
+=================================================
+
+ACCOUNT & LOGIN
+---------------
+
+Q: I forgot my password. How do I reset it?
+A: Go to app.acme.io/login and click "Forgot password". Enter your registered email address.
+   You will receive a reset link valid for 60 minutes. If you don't see the email, check your
+   spam folder or contact your admin if SSO is enforced on your account.
+
+Q: My account is locked. What should I do?
+A: Accounts lock after 5 consecutive failed login attempts. You can unlock via:
+   1. The "Unlock account" link sent automatically to your registered email.
+   2. Ask your org Admin to unlock from Settings → Team → select user → Unlock.
+   3. Contact ACME support if neither option is available.
+
+Q: Why does SSO login fail with "SAML assertion expired"?
+A: This usually means your Identity Provider (IdP) clock is out of sync. ACME's SAML
+   assertion validity window is 5 minutes. Ensure NTP is configured on your IdP server.
+   If the problem persists, check that the SP metadata at app.acme.io/saml/metadata is
+   correctly imported into your IdP.
+
+Q: Can I use ACME on mobile?
+A: Yes. ACME has iOS and Android apps (download from App Store / Google Play). The mobile
+   app supports CRM, notifications, and dashboards. Automation and advanced analytics
+   require the web interface.
+
+Q: How do I enable MFA for my account?
+A: Settings → My Account → Security → Enable MFA. Choose TOTP (recommended), SMS, or
+   hardware key. Save your 8 backup codes in a secure place.
+
+BILLING & PLANS
+---------------
+
+Q: How do I upgrade my plan?
+A: Settings → Billing → Change Plan. Upgrades take effect immediately; you are charged a
+   prorated amount for the remainder of the current billing cycle.
+
+Q: Can I get a refund if I downgrade?
+A: Downgrades take effect at the end of the current billing cycle. We do not offer
+   prorated refunds for downgrades. Enterprise contracts may have custom refund terms.
+
+Q: What happens if my payment fails?
+A: ACME retries your payment 3 times over 7 days. After all retries fail, your account
+   is suspended (read-only). You have a 14-day grace period to update your payment method
+   before the account is permanently deleted.
+
+Q: Do you offer a free trial?
+A: Yes. All plans include a 14-day free trial, no credit card required. At the end of the
+   trial you choose a plan or your account reverts to a read-only archive state.
+
+Q: Is there a non-profit or startup discount?
+A: Yes. Non-profits with 501(c)(3) status get 40% off Growth. Startups in recognized
+   accelerators (Y Combinator, Techstars, etc.) get 6 months free on Growth.
+   Apply at acme.io/discounts.
+
+DATA & PRIVACY
+--------------
+
+Q: Where is my data stored?
+A: By default, data is stored in the US (AWS us-east-1). EU storage (AWS eu-west-1) and
+   APAC storage (AWS ap-southeast-1) are available on Enterprise plans.
+
+Q: How do I export all my data?
+A: Settings → Data & Privacy → Export Data. You will receive a download link via email
+   within 2 hours. Export includes all contacts, deals, activities, and reports as JSON + CSV.
+
+Q: How do I delete my account?
+A: Only the Owner can delete an org. Settings → Billing → Delete Organization. There is
+   a 30-day recovery window. After 30 days, all data is permanently destroyed (certified
+   deletion report available on request for Enterprise).
+
+Q: Is ACME HIPAA compliant?
+A: ACME is HIPAA-eligible on Enterprise plans with a signed Business Associate Agreement (BAA).
+   Contact enterprise@acme.io to request a BAA. Healthcare data must be stored in the US
+   data residency region.
+
+INTEGRATIONS
+------------
+
+Q: How do I connect Salesforce?
+A: Integrations → Salesforce → Connect. You need Salesforce Admin credentials. ACME
+   installs a managed package in your Salesforce org for bidirectional sync. Initial
+   sync may take 1-4 hours depending on data volume.
+
+Q: The Slack integration stopped sending notifications. How do I fix it?
+A: Most likely the Slack bot was removed from the channel or the workspace token was
+   revoked. Go to Integrations → Slack → Reconnect, then re-add the ACME bot to your
+   desired Slack channel. Also check that notifications are enabled for the workflow
+   that should send to Slack (Automation → select workflow → Notify Slack action → verify channel).
+
+Q: What is the API rate limit?
+A: Rate limits by plan:
+   - Starter: 1,000 requests/minute
+   - Growth: 5,000 requests/minute
+   - Enterprise: 20,000 requests/minute
+   If you exceed the limit, you receive HTTP 429 with a Retry-After header. Consider
+   batching API calls or upgrading your plan if you consistently hit limits.
+
+ANALYTICS & REPORTS
+-------------------
+
+Q: My dashboard is showing stale data. How do I force a refresh?
+A: Click the refresh icon (↻) on the top right of any dashboard. You can also change
+   the refresh interval: Dashboard settings → Refresh interval. Real-time refresh is
+   available on Enterprise plans only.
+
+Q: Can I share a report with someone outside my org?
+A: Yes. On any report, click Share → Public Link. The link is read-only and doesn't
+   require login. You can set an expiry date (7 days, 30 days, never). Disable public
+   links at any time from the Share menu.
+
+Q: How long is data retained?
+A: Event-level data: 12 months (Starter/Growth), 36 months (Enterprise).
+   Aggregated/report data: unlimited on all plans.
+
+TROUBLESHOOTING
+---------------
+
+Q: My CSV import failed. What went wrong?
+A: Common causes:
+   1. Missing required columns (email is required for contacts).
+   2. Duplicate email addresses in the file.
+   3. File exceeds 50MB size limit (split into smaller files).
+   4. Special characters in headers — use only letters, numbers, and underscores.
+   Download the error report from Imports → Failed → Download Error Log for row-level details.
+
+Q: Emails sent from sequences are going to spam. What can I do?
+A: 1. Verify your domain at Settings → Email → Domain Verification (add SPF, DKIM, DMARC records).
+   2. Warm up your sending domain gradually — don't blast 10k emails on day one.
+   3. Reduce the use of spam-trigger words and all-caps in subject lines.
+   4. Ensure your unsubscribe link is prominent.
+   5. Check your domain reputation at mail-tester.com.

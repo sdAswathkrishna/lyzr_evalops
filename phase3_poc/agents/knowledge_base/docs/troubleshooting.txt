@@ -1,0 +1,164 @@
+ACME Platform — Troubleshooting Guide
+======================================
+
+ERROR CODES
+-----------
+
+ERR-401 Unauthorized
+  Cause: API token is missing, expired, or revoked.
+  Fix: Generate a new API token at Settings → API → Tokens → New Token. Tokens expire
+       after 90 days unless set to "Never expire" (Enterprise only). Ensure the Authorization
+       header uses the format: Bearer <token>
+
+ERR-403 Forbidden
+  Cause: The user/token doesn't have permission for the requested action.
+  Fix: Check the role assigned to the API token (Settings → API → Tokens → edit token roles).
+       For user-facing actions, verify the user's role has the required permission
+       at Settings → Roles.
+
+ERR-429 Too Many Requests
+  Cause: Rate limit exceeded.
+  Fix: Implement exponential backoff. Check the Retry-After header for the wait time.
+       Batch API calls where possible. Upgrade plan for higher limits.
+
+ERR-500 Internal Server Error
+  Cause: Unexpected server-side error.
+  Fix: Check status.acme.io for ongoing incidents. If no incident, retry after 30 seconds.
+       If persistent, open a support ticket with the request ID from the X-Request-ID
+       response header.
+
+ERR-SAML-001 SAML Assertion Expired
+  Cause: IdP clock drift greater than 5 minutes.
+  Fix: Configure NTP on your IdP. ACME's clock tolerance is not configurable.
+
+ERR-SAML-002 Invalid Signature
+  Cause: Certificate mismatch between IdP and ACME.
+  Fix: Re-download the IdP certificate and re-upload to ACME at
+       Settings → Security → SSO → your provider → Update Certificate.
+
+ERR-SAML-003 NameID Format Mismatch
+  Cause: IdP sends email address in a different NameID format than configured in ACME.
+  Fix: In ACME SSO settings, change NameID Format to match your IdP
+       (usually urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress).
+
+ERR-IMPORT-001 Missing Required Field
+  Cause: CSV import is missing the 'email' column.
+  Fix: Add an 'email' column to your CSV. For contact imports, email is the unique identifier.
+
+ERR-IMPORT-002 Duplicate Records
+  Cause: Import contains duplicate email addresses.
+  Fix: De-duplicate your CSV before import. Use Excel/Sheets "Remove Duplicates" feature.
+       ACME skips duplicates by default but reports them in the error log.
+
+ERR-WEBHOOK-001 Webhook Delivery Failed
+  Cause: Your endpoint returned a non-2xx status or timed out (>10s).
+  Fix: Check your endpoint logs. ACME retries failed webhooks up to 5 times with
+       exponential backoff (1m, 5m, 30m, 2h, 8h). After 5 failures the webhook is
+       marked as failed. Re-enable from Settings → Webhooks → Failed → Retry.
+
+LOGIN & AUTHENTICATION ISSUES
+------------------------------
+
+Issue: Users can log in but are immediately redirected to the login page.
+  Cause: Session cookie is not being set — often a third-party cookie blocking issue.
+  Fix: Ensure the browser allows cookies from app.acme.io. Safari users should go to
+       Safari → Preferences → Privacy → Prevent cross-site tracking (disable for this site).
+       Alternatively, use the ACME mobile app which uses token-based auth.
+
+Issue: SSO works for some users but not others.
+  Cause: User is not assigned to the ACME application in the IdP.
+  Fix: In Okta/Azure AD, verify that all intended users are assigned to the ACME application.
+       Check IdP audit logs for the failing user's login attempt for error details.
+
+Issue: MFA code is rejected even though it's correct.
+  Cause: TOTP apps require accurate device time. If device time drifts, codes mismatch.
+  Fix: Sync device time: iOS → Settings → General → Date & Time → Set Automatically.
+       Android → Settings → General Management → Date and Time → Automatic date and time.
+
+Issue: Password reset email never arrives.
+  Cause: Email blocked by spam filter, wrong email address, or email delivery delay.
+  Fix: Check spam/junk folder. Wait 5 minutes. If still not received, contact your admin
+       to confirm the email address on file. Admins can trigger password resets from the
+       Team settings page.
+
+CRM ISSUES
+----------
+
+Issue: Contact import completes but records show wrong field values.
+  Cause: Column mapping was incorrect during import.
+  Fix: When importing, verify the column mapping step (step 2 of the import wizard). If
+       already imported incorrectly, export the contacts, fix the CSV, delete the incorrect
+       records, and re-import with correct mapping.
+
+Issue: Deal pipeline stage changes are not saving.
+  Cause: User lacks "Edit Deals" permission.
+  Fix: Admin should go to Settings → Roles → user's role → Data Access → enable Edit Deals.
+
+Issue: Calendar sync stopped working.
+  Cause: OAuth token expired or revoked.
+  Fix: Settings → Integrations → Google Calendar / Outlook → Reconnect. Re-authorize ACME
+       to access your calendar.
+
+ANALYTICS ISSUES
+----------------
+
+Issue: Report shows "No data" but there should be data.
+  Cause: Date range filter excludes the data, or data hasn't been processed yet.
+  Fix: Expand the date range. Check if the time zone setting matches your expectation
+       (Settings → Workspace → Time Zone). New events may take up to 15 minutes to appear.
+
+Issue: Funnel report numbers don't match what I expect.
+  Cause: Funnel reports are non-cumulative by default — each stage shows unique
+         users who reached ONLY that stage, not total.
+  Fix: Switch to "Cumulative mode" using the toggle in the top-right of the Funnel report.
+
+Issue: Scheduled report email has not arrived.
+  Cause: Report generation failed or email was blocked.
+  Fix: Check Automation → Report Schedules → last run status. If it shows "Failed",
+       click the report to see the error. Common cause is a report filter that returns
+       0 rows with the "Skip empty reports" option enabled.
+
+AUTOMATION ISSUES
+-----------------
+
+Issue: Workflow is not triggering.
+  Cause: Workflow is in Draft or Paused state, or the trigger condition isn't being met.
+  Fix: Automation → select workflow → verify status is "Active". Review the trigger
+       conditions. Check Automation → History to see if the trigger fired but an action failed.
+
+Issue: Workflow sends duplicate emails.
+  Cause: Workflow has no "Exit condition" and contact meets trigger criteria repeatedly.
+  Fix: Add an exit condition (e.g., "contact has already received this email") or enable
+       "Run once per contact" toggle in workflow settings.
+
+Issue: Webhook action returns 401 in workflow history.
+  Cause: The external endpoint requires authentication.
+  Fix: Add authentication headers in the webhook action step:
+       Automation → your workflow → Webhook action → Headers → add Authorization header.
+
+PERFORMANCE ISSUES
+------------------
+
+Issue: Dashboard loads slowly.
+  Cause: Too many complex widgets or very large date ranges.
+  Fix: Reduce widgets per dashboard, narrow date ranges, or upgrade to Enterprise for
+       real-time aggregation. Avoid using "All time" as a date range for large datasets.
+
+Issue: API responses are slow.
+  Cause: Complex queries, large response payloads, or approaching rate limits.
+  Fix: Use pagination (page_size parameter). Filter results server-side using query parameters.
+       Use the ?fields= parameter to select only needed fields (reduces payload size by up to 70%).
+
+DATA SYNC ISSUES
+----------------
+
+Issue: Salesforce sync shows "Sync error: insufficient permissions".
+  Cause: The Salesforce user account used for integration lacks object-level permissions.
+  Fix: In Salesforce, ensure the integration user has Read/Write access to:
+       Contact, Lead, Account, Opportunity, Task, Event objects.
+       Also verify the ACME managed package is installed (Setup → Installed Packages → ACME).
+
+Issue: HubSpot contacts are not appearing in ACME.
+  Cause: HubSpot field mapping is incomplete.
+  Fix: Integrations → HubSpot → Field Mapping → verify all required ACME fields are mapped
+       to HubSpot properties. The sync runs every 15 minutes; check "Last synced" timestamp.

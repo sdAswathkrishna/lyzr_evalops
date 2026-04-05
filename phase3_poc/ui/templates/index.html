@@ -1,0 +1,159 @@
+{% extends "base.html" %}
+{% block title %}Overview{% endblock %}
+{% block content %}
+
+<div class="mb-6">
+  <h1 class="text-2xl font-bold text-gray-900">EvalOps POC — Overview</h1>
+  <p class="text-gray-500 mt-1">LangSmith capabilities vs Lyzr + Bridge layer · Same agent · Same queries · Same evaluators</p>
+</div>
+
+<!-- Feature gap matrix -->
+<div class="bg-white rounded-xl shadow-sm border border-gray-100 mb-6">
+  <div class="px-6 py-4 border-b border-gray-100">
+    <h2 class="text-lg font-semibold text-gray-800">Feature Availability Matrix</h2>
+    <p class="text-sm text-gray-500">What exists natively vs what the bridge adds</p>
+  </div>
+  <div class="overflow-x-auto">
+    <table class="w-full text-sm">
+      <thead class="bg-gray-50">
+        <tr>
+          <th class="text-left px-6 py-3 text-gray-600 font-medium">Capability</th>
+          <th class="text-center px-4 py-3 text-blue-600 font-medium">LangSmith</th>
+          <th class="text-center px-4 py-3 text-purple-600 font-medium">Lyzr (native)</th>
+          <th class="text-center px-4 py-3 text-green-600 font-medium">Lyzr + Bridge</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-50">
+        {% set rows = [
+          ("Automatic agent tracing",             "✅ Full",   "✅ Studio UI", "✅ Full"),
+          ("Programmatic trace access (SDK)",     "✅ Full",   "❌ Missing",   "✅ Bridge adds it"),
+          ("Token counts & latency per span",     "✅ Full",   "✅ Studio UI", "✅ Full"),
+          ("Feedback API (score a run by ID)",    "✅ Full",   "❌ Missing",   "✅ Bridge adds it"),
+          ("Evaluation dataset management",       "✅ Full",   "❌ Missing",   "✅ Bridge adds it"),
+          ("Trace → Dataset pipeline",            "✅ Full",   "❌ Missing",   "✅ Bridge adds it"),
+          ("LLM-as-a-judge custom evaluators",   "✅ Full",   "❌ Missing",   "✅ Bridge adds it"),
+          ("Experiment runner",                   "✅ Full",   "❌ Missing",   "✅ Bridge adds it"),
+          ("Version comparison (A/B)",            "✅ Full",   "❌ Missing",   "✅ Bridge adds it"),
+          ("PROMOTE / CANARY / HOLD / ROLLBACK",  "⚠️ Manual", "❌ Missing",   "✅ Bridge adds it"),
+          ("Built-in RAI guardrails",             "❌ Missing","✅ Native",    "✅ Native (kept)"),
+          ("Auto test case generation (A-Sim)",   "❌ Missing","✅ Native",    "✅ Native (kept)"),
+          ("No-code agent builder",               "❌ Missing","✅ Studio",    "✅ Studio (kept)"),
+        ] %}
+        {% for cap, ls, lyzr_native, lyzr_bridge in rows %}
+        <tr class="hover:bg-gray-50">
+          <td class="px-6 py-3 text-gray-700 font-medium">{{ cap }}</td>
+          <td class="px-4 py-3 text-center">
+            {% if "✅" in ls %}<span class="badge-green">{{ ls }}</span>
+            {% elif "❌" in ls %}<span class="badge-red">{{ ls }}</span>
+            {% else %}<span class="badge-yellow">{{ ls }}</span>{% endif %}
+          </td>
+          <td class="px-4 py-3 text-center">
+            {% if "✅" in lyzr_native %}<span class="badge-green">{{ lyzr_native }}</span>
+            {% elif "❌" in lyzr_native %}<span class="badge-red">{{ lyzr_native }}</span>
+            {% else %}<span class="badge-yellow">{{ lyzr_native }}</span>{% endif %}
+          </td>
+          <td class="px-4 py-3 text-center">
+            {% if "✅" in lyzr_bridge %}<span class="badge-green">{{ lyzr_bridge }}</span>
+            {% else %}<span class="badge-yellow">{{ lyzr_bridge }}</span>{% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Summary stats -->
+{% if summary %}
+<div class="grid grid-cols-4 gap-4 mb-6">
+  {% set metrics = ["correctness","helpfulness","conciseness"] %}
+  {% for metric in metrics %}
+  {% set ls_score  = summary.langsmith.scores.get(metric, 0) %}
+  {% set l1_score  = summary.lyzr_v1.scores.get(metric, 0) %}
+  {% set l2_score  = summary.lyzr_v2.scores.get(metric, 0) %}
+  <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
+    <p class="text-xs text-gray-400 uppercase tracking-wide mb-1">{{ metric }}</p>
+    <div class="flex items-end gap-3">
+      <div>
+        <p class="text-xs text-blue-500 mb-0.5">LangSmith</p>
+        <p class="text-xl font-bold text-gray-800">{{ "%.2f"|format(ls_score) }}</p>
+      </div>
+      <div>
+        <p class="text-xs text-purple-500 mb-0.5">Lyzr v2</p>
+        <p class="text-xl font-bold text-gray-800">{{ "%.2f"|format(l2_score) }}</p>
+      </div>
+    </div>
+    <div class="mt-3 score-bar"><div class="score-fill" style="width:{{ (l2_score*100)|int }}%"></div></div>
+  </div>
+  {% endfor %}
+
+  <!-- Release decision card -->
+  {% set verdict = summary.decision.verdict %}
+  {% set v_colors = {"PROMOTE":"green","CANARY":"yellow","HOLD":"yellow","ROLLBACK":"red"} %}
+  {% set vc = v_colors.get(verdict, "gray") %}
+  <div class="bg-{{ vc }}-50 rounded-xl border border-{{ vc }}-200 shadow-sm p-5">
+    <p class="text-xs text-{{ vc }}-600 uppercase tracking-wide font-medium mb-1">Release Decision</p>
+    <p class="text-2xl font-bold text-{{ vc }}-700">{{ verdict }}</p>
+    <p class="text-xs text-{{ vc }}-600 mt-2">{{ summary.decision.reason[:80] }}…</p>
+  </div>
+{% endif %}
+</div>
+
+<!-- Architecture diagram -->
+<div class="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
+  <h2 class="text-lg font-semibold text-gray-800 mb-4">What the Bridge Adds</h2>
+  <div class="flex items-start gap-6">
+    <div class="flex-1">
+      <div class="bg-blue-50 rounded-lg p-4 border border-blue-100 mb-3">
+        <p class="text-sm font-semibold text-blue-700 mb-2">LangSmith (baseline)</p>
+        <div class="space-y-1 text-xs text-blue-600">
+          <p>✅ agent.invoke() → auto-traced</p>
+          <p>✅ client.list_runs() → programmatic access</p>
+          <p>✅ client.create_dataset() → dataset management</p>
+          <p>✅ evaluate() → experiment runner</p>
+          <p>✅ Compare Experiments UI</p>
+        </div>
+      </div>
+    </div>
+    <div class="flex items-center text-2xl text-gray-400 pt-8">→</div>
+    <div class="flex-1">
+      <div class="bg-purple-50 rounded-lg p-4 border border-purple-100 mb-3">
+        <p class="text-sm font-semibold text-purple-700 mb-2">Lyzr (native)</p>
+        <div class="space-y-1 text-xs text-purple-600">
+          <p>✅ agent.run() → auto-traced (Studio UI)</p>
+          <p>❌ No programmatic trace access</p>
+          <p>❌ No dataset management</p>
+          <p>❌ No experiment runner</p>
+          <p>✅ RAI guardrails, A-Sim, no-code builder</p>
+        </div>
+      </div>
+    </div>
+    <div class="flex items-center text-2xl text-gray-400 pt-8">+</div>
+    <div class="flex-1">
+      <div class="bg-green-50 rounded-lg p-4 border border-green-100 mb-3">
+        <p class="text-sm font-semibold text-green-700 mb-2">Bridge Layer (this POC)</p>
+        <div class="space-y-1 text-xs text-green-600">
+          <p>✅ LyzrTracer — runtime interceptor</p>
+          <p>✅ SQLite trace store + feedback API</p>
+          <p>✅ DatasetStore — create/manage examples</p>
+          <p>✅ ExperimentRunner — LLM-as-judge</p>
+          <p>✅ Release decision engine</p>
+        </div>
+      </div>
+    </div>
+    <div class="flex items-center text-2xl text-gray-400 pt-8">=</div>
+    <div class="flex-1">
+      <div class="bg-gradient-to-br from-purple-50 to-green-50 rounded-lg p-4 border border-purple-200">
+        <p class="text-sm font-semibold text-purple-700 mb-2">Lyzr + Bridge = Parity ✨</p>
+        <div class="space-y-1 text-xs text-gray-600">
+          <p>✅ Full programmatic EvalOps</p>
+          <p>✅ All LangSmith core capabilities</p>
+          <p>✅ PLUS Lyzr's native strengths</p>
+          <p class="mt-2 font-medium text-purple-600">Best of both worlds</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

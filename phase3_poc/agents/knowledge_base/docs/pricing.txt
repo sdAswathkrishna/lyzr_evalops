@@ -1,0 +1,143 @@
+ACME Platform — Pricing & Plans Guide
+======================================
+
+PLAN OVERVIEW
+-------------
+
+STARTER — $49/month (billed monthly) or $39/month (billed annually)
+  Ideal for: Small teams and early-stage startups
+  Users: Up to 3 seats
+  Contacts: Up to 10,000
+  Email sends: 10,000/month included
+  Storage: 5 GB
+  Support: Community forum + email (48h SLA)
+  Key features:
+    - CRM (contacts, deals, activities)
+    - Basic analytics (pre-built reports only)
+    - 5 active automations
+    - 1 pipeline
+    - CSV import/export
+    - REST API access (1,000 req/min)
+    - Zapier integration
+    - 14-day free trial, no credit card required
+
+GROWTH — $199/month (billed monthly) or $159/month (billed annually)
+  Ideal for: Growing teams needing deeper insights and automation
+  Users: Up to 25 seats (additional seats: $12/user/month)
+  Contacts: Up to 100,000 (additional contacts: $20 per 10k/month)
+  Email sends: 50,000/month included ($0.001 per additional email)
+  SMS sends: 500/month included ($0.015 per additional SMS)
+  Storage: 50 GB
+  Support: Email + chat (8h SLA, Mon–Fri 9am–6pm local time)
+  Key features:
+    - Everything in Starter
+    - Custom analytics dashboards (up to 20)
+    - Advanced reports + custom report builder
+    - Unlimited automations + sequences (email drip)
+    - A/B testing for email sequences
+    - Unlimited pipelines + custom fields (up to 50 per object)
+    - Two-way calendar sync (Google + Outlook)
+    - REST API access (5,000 req/min)
+    - Native integrations (Salesforce, HubSpot, Slack, Stripe, etc.)
+    - Audit logs (1 year retention)
+    - Data export
+
+ENTERPRISE — Custom pricing (contact sales@acme.io)
+  Ideal for: Large organizations with compliance, security, and scale requirements
+  Users: Unlimited
+  Contacts: Unlimited
+  Email sends: Unlimited
+  Storage: Unlimited
+  Support: 24/7 phone + dedicated Customer Success Manager + 1h critical SLA
+  Key features:
+    - Everything in Growth
+    - SSO (SAML 2.0) with enforcement
+    - Custom data residency (US / EU / APAC)
+    - HIPAA-eligible add-on (requires BAA)
+    - SOC 2 Type II + ISO 27001 compliance documentation
+    - Audit logs (7 year retention)
+    - Real-time analytics dashboards
+    - Unlimited custom fields
+    - Dedicated onboarding + implementation support
+    - Custom SLA agreements
+    - API rate limit: 20,000 req/min
+    - Priority feature requests
+    - Custom contract terms and invoicing
+
+ADD-ONS (available on Growth and Enterprise)
+--------------------------------------------
+  - Extra seats: $12/user/month (Growth) or custom (Enterprise)
+  - Extra contacts: $20 per 10,000 contacts/month
+  - Email add-on: 100,000 additional emails/month for $80
+  - SMS add-on: 5,000 additional SMS/month for $65
+  - Analytics Pro: Advanced ML-based forecasting, $99/month (Growth only)
+  - HIPAA add-on: Enables HIPAA data handling, $199/month (Enterprise only)
+  - Data residency change: One-time migration fee of $500
+
+BILLING DETAILS
+---------------
+  - Billing cycle: Monthly or annual (annual saves ~20%)
+  - Payment methods: Credit card (Visa, Mastercard, Amex), ACH bank transfer (US only),
+    wire transfer (Enterprise), purchase orders (Enterprise)
+  - Invoices: Sent on the 1st of each month to the billing email
+  - Failed payments: 3 retries over 7 days → account suspended → 14-day grace → delete
+  - Upgrades: Take effect immediately; prorated charge for remaining cycle
+  - Downgrades: Take effect at end of current billing cycle; no refund for prorated period
+  - Annual plans: Paid upfront; no refunds after 30-day cancellation window
+
+FREE TRIAL
+----------
+  - 14 days, all Growth features, no credit card required
+  - At trial end: choose a plan, or account moves to read-only archive mode
+  - Data retained for 30 days in archive, then deleted if no plan selected
+  - Extend trial by 7 days: request once from Settings → Billing → Extend Trial
+
+DISCOUNTS & SPECIAL PROGRAMS
+------------------------------
+  - Annual discount: ~20% off any plan when billed annually
+  - Non-profit: 40% off Growth plan (requires 501(c)(3) documentation)
+  - Startup program: 6 months free Growth for qualifying accelerator companies
+    (Y Combinator, Techstars, a16z, Sequoia Scout, etc.)
+  - Education: 50% off Starter for academic institutions
+  - Volume discount: Custom pricing for 50+ seat contracts
+  - Apply at acme.io/discounts
+
+PLAN COMPARISON TABLE
+---------------------
+Feature                     | Starter    | Growth       | Enterprise
+----------------------------|------------|--------------|------------------
+Monthly price               | $49        | $199         | Custom
+Users                       | 3          | 25           | Unlimited
+Contacts                    | 10,000     | 100,000      | Unlimited
+Email sends/month           | 10,000     | 50,000       | Unlimited
+Automations                 | 5          | Unlimited    | Unlimited
+Pipelines                   | 1          | Unlimited    | Unlimited
+Custom fields per object    | 10         | 50           | Unlimited
+Analytics dashboards        | Pre-built  | 20 custom    | Unlimited
+API rate limit (req/min)    | 1,000      | 5,000        | 20,000
+SSO / SAML                  | No         | No           | Yes
+MFA                         | Optional   | Optional     | Enforceable
+Data residency choice       | US only    | US only      | US/EU/APAC
+HIPAA eligible              | No         | No           | Add-on
+Audit log retention         | None       | 1 year       | 7 years
+Support SLA                 | 48h email  | 8h chat      | 1h 24/7
+Dedicated CSM               | No         | No           | Yes
+
+FREQUENTLY ASKED BILLING QUESTIONS
+------------------------------------
+
+Q: Can I switch from monthly to annual billing mid-cycle?
+A: Yes. Settings → Billing → Change to Annual. You'll pay the prorated annual amount
+   immediately minus any credit from unused monthly payments.
+
+Q: What happens to my data if I cancel?
+A: Your data is retained in a read-only archive for 30 days after cancellation. You can
+   export it during this window. After 30 days, data is permanently deleted.
+
+Q: Do you support purchase orders?
+A: Yes, but only on Enterprise plans. Contact enterprise@acme.io with your PO number and
+   billing requirements.
+
+Q: Is the price per seat or per org?
+A: Plans are priced per org (organization). Each plan includes a seat limit. Additional
+   seats can be purchased as add-ons. One user = one seat.

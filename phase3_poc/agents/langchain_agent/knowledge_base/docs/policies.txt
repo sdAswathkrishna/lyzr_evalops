@@ -1,0 +1,144 @@
+ACME Platform — Policies & Terms of Service Summary
+=====================================================
+
+This document summarizes key policies. Full legal documents at acme.io/legal.
+
+DATA RETENTION POLICY
+----------------------
+User-Generated Data:
+  - Active accounts: Data retained indefinitely while account is active.
+  - Cancelled accounts: Data retained 30 days in read-only archive after cancellation.
+  - Deleted accounts: Permanent deletion within 60 days of the 30-day archive window.
+  - Deletion certificates available for Enterprise customers on request.
+
+Event & Analytics Data:
+  - Raw event data: 12 months (Starter/Growth), 36 months (Enterprise).
+  - Aggregated report data: Retained indefinitely on all plans.
+  - Audit logs: None (Starter), 1 year (Growth), 7 years (Enterprise).
+
+Backup Policy:
+  - Full database backups: Nightly, retained 30 days.
+  - Point-in-time recovery: Available on Enterprise, up to 30 days lookback.
+  - Backups are encrypted at rest (AES-256) and stored in a separate AWS region.
+
+DATA PROCESSING & PRIVACY (GDPR/CCPA)
+---------------------------------------
+ACME acts as a Data Processor when handling personal data on behalf of customers.
+Customers are the Data Controllers responsible for their end-users' data.
+
+GDPR Compliance:
+  - Data Processing Agreement (DPA) available at acme.io/legal/dpa.
+  - Lawful basis: Customers must ensure they have a lawful basis for processing data in ACME.
+  - Data Subject Requests (DSR): ACME provides tools for Customers to fulfill DSRs
+    (export, delete) via the Data & Privacy settings page.
+  - Data transfer: Personal data transferred to the US is protected by Standard
+    Contractual Clauses (SCCs).
+
+CCPA Compliance:
+  - ACME does not sell Customer data to third parties.
+  - California residents can request data deletion or access through their ACME admin.
+
+Cookie Policy:
+  - ACME uses strictly necessary cookies (session management, CSRF protection) and
+    analytics cookies (can be disabled). No advertising cookies are used.
+
+ACCEPTABLE USE POLICY (AUP)
+-----------------------------
+Prohibited uses of the ACME Platform:
+  1. Sending unsolicited bulk email (spam) or SMS to people who have not opted in.
+  2. Storing sensitive personal data beyond what is needed for your stated business purpose.
+  3. Using ACME to conduct phishing attacks, credential harvesting, or fraud.
+  4. Attempting to reverse-engineer, decompile, or disassemble ACME software.
+  5. Sharing login credentials between multiple users (each person must have their own seat).
+  6. Using automation workflows to artificially inflate activity metrics or gaming SLAs.
+  7. Accessing another customer's data without authorization.
+
+Violations may result in immediate account suspension without refund.
+
+SERVICE LEVEL AGREEMENT (SLA)
+-------------------------------
+Uptime Commitments:
+  - Starter: Best-effort, no formal SLA.
+  - Growth: 99.5% monthly uptime SLA.
+  - Enterprise: 99.9% monthly uptime SLA (critical components); custom SLAs available.
+
+Downtime Definition:
+  - Downtime = period when ACME core services are inaccessible from the public internet,
+    excluding scheduled maintenance and events outside ACME's reasonable control.
+
+Scheduled Maintenance:
+  - Announced at least 48 hours in advance via status.acme.io and email.
+  - Typically performed on Tuesday or Wednesday 2am–4am UTC.
+  - Scheduled maintenance does not count toward downtime calculations.
+
+SLA Credits:
+  Uptime in Month   | Service Credit
+  ≥ 99.9%           | No credit
+  99.0% – 99.9%     | 10% of monthly invoice
+  95.0% – 99.0%     | 25% of monthly invoice
+  < 95.0%           | 50% of monthly invoice
+
+  Credits are applied to the next invoice, not paid as cash. Must be claimed within 30
+  days of the incident by submitting a request to support@acme.io.
+
+SUPPORT POLICY
+--------------
+Support Tiers:
+  - Community (Starter): Access to community.acme.io forums. No guaranteed response time.
+  - Email (Starter): support@acme.io. 48-hour response SLA (business days).
+  - Chat + Email (Growth): In-app chat + email. 8-hour SLA, Mon–Fri 9am–6pm customer's
+    local time zone.
+  - Phone + Chat + Email (Enterprise): 24/7 phone support + dedicated CSM.
+    Critical issues: 1-hour response SLA.
+
+Issue Severity Levels (Enterprise):
+  P1 - Critical: System down, data loss risk. 1h response, 4h resolution target.
+  P2 - High: Core feature unavailable, no workaround. 4h response, 8h resolution target.
+  P3 - Medium: Feature degraded, workaround available. Next business day response.
+  P4 - Low: Questions, feature requests, minor issues. 3 business days response.
+
+Out-of-Scope Support:
+  - Custom code or third-party integrations not built by ACME.
+  - Issues caused by customer modifications to ACME configuration contrary to guidelines.
+  - Infrastructure issues on the customer's side (ISP outages, firewalls blocking ACME IPs).
+
+SECURITY POLICY
+---------------
+Penetration Testing:
+  - Customers may conduct security testing on their own ACME tenants with prior written
+    approval. Submit requests 5 business days in advance to security@acme.io.
+  - DoS testing, testing other customers' tenants, and social engineering of ACME staff
+    are strictly prohibited.
+
+Vulnerability Disclosure:
+  - ACME operates a responsible disclosure program.
+  - Report security issues to security@acme.io. Response within 24 hours.
+  - Bug bounty details at acme.io/security/bugbounty.
+
+Incident Response:
+  - In the event of a data breach affecting customer data, ACME will notify affected
+    customers within 72 hours of becoming aware of the breach (GDPR Article 33 requirement).
+  - Notification includes: nature of breach, data types affected, mitigation steps taken.
+
+INTELLECTUAL PROPERTY
+----------------------
+  - ACME Platform, including all software, UI, and documentation, is owned by ACME Inc.
+  - Customers retain ownership of all data they input into the platform.
+  - ACME may use aggregated, anonymized usage data to improve the platform.
+  - ACME name, logo, and trademarks may not be used without written permission.
+
+TERMINATION & CANCELLATION
+----------------------------
+  - Customers may cancel at any time from Settings → Billing → Cancel Subscription.
+  - Monthly subscriptions: cancel before next billing date to avoid charge.
+  - Annual subscriptions: cancel within 30 days for a prorated refund; no refund after 30 days.
+  - ACME may terminate accounts that violate the AUP without notice.
+  - Upon termination, 30-day data export window begins immediately.
+
+CHANGES TO POLICIES
+--------------------
+  - ACME may update these policies with 30 days notice for material changes.
+  - Notice sent via email to account owners and posted at acme.io/legal/changelog.
+  - Continued use of ACME after the effective date constitutes acceptance of changes.
+  - For Enterprise customers with custom contracts, contract terms supersede these policies
+    where they conflict.

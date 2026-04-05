@@ -166,11 +166,225 @@
       flex: 1;
       min-width: 0;
       display: flex;
-      flex-direction: column;
+      gap: 24px;
+      padding: 24px;
+      align-items: stretch;
     }
 
     .page-wrap {
-      padding: 28px 32px;
+      flex: 1;
+      min-width: 0;
+    }
+
+    .content-column {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .chat-rail {
+      width: 380px;
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      position: sticky;
+      top: 24px;
+      max-height: calc(100vh - 48px);
+    }
+
+    .chat-shell {
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+      height: 100%;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      box-shadow: var(--shadow-sm);
+      overflow: hidden;
+    }
+
+    .chat-header {
+      padding: 20px 22px 16px;
+      border-bottom: 1px solid var(--border);
+      background: linear-gradient(180deg, #ffffff 0%, #fafcfc 100%);
+    }
+
+    .chat-title {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 700;
+      color: #252525;
+    }
+
+    .chat-subtitle {
+      margin: 6px 0 0;
+      font-size: 13px;
+      line-height: 1.5;
+      color: #6a7384;
+    }
+
+    .chat-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: var(--primary-soft);
+      color: var(--primary-strong);
+      font-size: 12px;
+      font-weight: 600;
+      margin-top: 12px;
+    }
+
+    .chat-status::before {
+      content: "";
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: #22c55e;
+      box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.12);
+    }
+
+    .chat-body {
+      flex: 1;
+      min-height: 320px;
+      overflow-y: auto;
+      padding: 18px;
+      background: #fbfcfd;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .chat-empty {
+      border: 1px dashed rgba(33, 129, 136, 0.16);
+      background: rgba(33, 129, 136, 0.04);
+      border-radius: 14px;
+      padding: 16px;
+      color: #5c6678;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .message {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .message-meta {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+      color: #8a93a5;
+    }
+
+    .message-bubble {
+      max-width: 100%;
+      border-radius: 14px;
+      padding: 12px 14px;
+      font-size: 14px;
+      line-height: 1.6;
+      white-space: pre-wrap;
+      word-break: break-word;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .message-user .message-bubble {
+      background: var(--primary);
+      color: white;
+      align-self: flex-end;
+    }
+
+    .message-assistant .message-bubble {
+      background: white;
+      color: #31343a;
+      border: 1px solid rgba(37, 37, 37, 0.08);
+    }
+
+    .message-system .message-bubble {
+      background: #f8fafc;
+      color: #5c6678;
+      border: 1px solid rgba(37, 37, 37, 0.08);
+    }
+
+    .chat-trace {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .chat-composer {
+      padding: 16px 18px 18px;
+      border-top: 1px solid var(--border);
+      background: white;
+    }
+
+    .chat-form {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .chat-input {
+      width: 100%;
+      min-height: 108px;
+      resize: vertical;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 14px 14px 12px;
+      background: white;
+      color: #252525;
+      font: inherit;
+      line-height: 1.6;
+      box-sizing: border-box;
+      transition: border-color 0.18s ease, box-shadow 0.18s ease;
+    }
+
+    .chat-input:focus {
+      outline: none;
+      border-color: rgba(33, 129, 136, 0.45);
+      box-shadow: 0 0 0 4px rgba(33, 129, 136, 0.12);
+    }
+
+    .chat-controls {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .chat-caption {
+      font-size: 12px;
+      color: #7b8495;
+      line-height: 1.5;
+    }
+
+    .chat-button {
+      appearance: none;
+      border: none;
+      border-radius: 12px;
+      background: linear-gradient(180deg, var(--primary) 0%, var(--primary-strong) 100%);
+      color: white;
+      font: inherit;
+      font-weight: 600;
+      padding: 11px 18px;
+      cursor: pointer;
+      box-shadow: var(--shadow-sm);
+      transition: transform 0.18s ease, opacity 0.18s ease;
+    }
+
+    .chat-button:hover:not(:disabled) {
+      transform: translateY(-1px);
+    }
+
+    .chat-button:disabled {
+      cursor: not-allowed;
+      opacity: 0.6;
     }
 
     .hero-panel {
@@ -363,14 +577,23 @@
 
     @media (max-width: 1100px) {
       .sidebar { width: 216px; }
-      .page-wrap { padding: 20px; }
       .page-title { font-size: 32px; }
+      .chat-rail { width: 340px; }
     }
 
     @media (max-width: 900px) {
       .app-shell { display: block; }
       .sidebar { width: 100%; min-height: auto; }
-      .page-wrap { padding: 16px; }
+      .main-panel {
+        display: block;
+        padding: 16px;
+      }
+      .chat-rail {
+        width: 100%;
+        position: static;
+        max-height: none;
+        margin-top: 20px;
+      }
     }
   </style>
 </head>
@@ -409,15 +632,6 @@
         </a>
       </div>
 
-      <div class="nav-group">
-        <div class="nav-label">Live</div>
-        <a href="/chat" class="{{ 'nav-active' if active == 'chat' else 'nav-link' }}">
-          <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.9" d="M8 10h.01M12 10h.01M16 10h.01M21 12a9 9 0 11-3.51-7.09L21 3v9z"/></svg>
-          Agent Chat
-          <span class="status-dot"></span>
-        </a>
-      </div>
-
       <div class="sidebar-footer">
         <div>Lyzr Evalops</div>
         <div>Phase 3 interface</div>
@@ -425,10 +639,137 @@
     </aside>
 
     <main class="main-panel">
-      <div class="page-wrap">
-        {% block content %}{% endblock %}
+      <div class="content-column">
+        <div class="page-wrap">
+          {% block content %}{% endblock %}
+        </div>
       </div>
+      <aside class="chat-rail">
+        <section class="chat-shell">
+          <div class="chat-header">
+            <h2 class="chat-title">Agent Workspace</h2>
+            <p class="chat-subtitle">Interact with the active agent while you review traces, datasets, experiments, and release decisions.</p>
+            <div class="chat-status">Agent connected</div>
+          </div>
+          <div class="chat-body" id="chatBody">
+            <div class="chat-empty" id="chatEmpty">
+              Start a conversation to inspect the active agent directly from the dashboard. Responses will surface trace identifiers and execution metadata when available.
+            </div>
+          </div>
+          <div class="chat-composer">
+            <form class="chat-form" id="chatForm">
+              <textarea
+                id="chatInput"
+                class="chat-input"
+                name="message"
+                placeholder="Ask the agent about a trace, a dataset, a release decision, or a product query."
+                required
+              ></textarea>
+              <div class="chat-controls">
+                <div class="chat-caption">This panel uses the live <span class="mono-text">/api/chat</span> backend endpoint.</div>
+                <button class="chat-button" id="chatSubmit" type="submit">Send</button>
+              </div>
+            </form>
+          </div>
+        </section>
+      </aside>
     </main>
   </div>
+  <script>
+    const chatForm = document.getElementById('chatForm');
+    const chatInput = document.getElementById('chatInput');
+    const chatBody = document.getElementById('chatBody');
+    const chatSubmit = document.getElementById('chatSubmit');
+    const chatEmpty = document.getElementById('chatEmpty');
+
+    function appendMessage(role, text, meta = {}) {
+      if (chatEmpty) {
+        chatEmpty.remove();
+      }
+
+      const wrapper = document.createElement('div');
+      wrapper.className = `message message-${role}`;
+
+      const metaLabel = document.createElement('div');
+      metaLabel.className = 'message-meta';
+      metaLabel.textContent = role === 'user' ? 'Operator' : role === 'assistant' ? 'Agent' : 'System';
+      wrapper.appendChild(metaLabel);
+
+      const bubble = document.createElement('div');
+      bubble.className = 'message-bubble';
+      bubble.textContent = text;
+      wrapper.appendChild(bubble);
+
+      if (meta.trace_id || meta.latency_ms || meta.steps_count !== undefined) {
+        const traceRow = document.createElement('div');
+        traceRow.className = 'chat-trace';
+
+        if (meta.trace_id) {
+          const traceBadge = document.createElement('span');
+          traceBadge.className = 'badge badge-teal mono-text';
+          traceBadge.textContent = `Trace ${String(meta.trace_id).slice(0, 8)}...`;
+          traceRow.appendChild(traceBadge);
+        }
+
+        if (meta.latency_ms !== undefined && meta.latency_ms !== null) {
+          const latencyBadge = document.createElement('span');
+          latencyBadge.className = 'badge badge-slate';
+          latencyBadge.textContent = `${Math.round(meta.latency_ms)} ms`;
+          traceRow.appendChild(latencyBadge);
+        }
+
+        if (meta.steps_count !== undefined && meta.steps_count !== null) {
+          const stepsBadge = document.createElement('span');
+          stepsBadge.className = 'badge badge-blue';
+          stepsBadge.textContent = `${meta.steps_count} steps`;
+          traceRow.appendChild(stepsBadge);
+        }
+
+        wrapper.appendChild(traceRow);
+      }
+
+      chatBody.appendChild(wrapper);
+      chatBody.scrollTop = chatBody.scrollHeight;
+    }
+
+    chatForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const message = chatInput.value.trim();
+      if (!message) return;
+
+      appendMessage('user', message);
+      chatInput.value = '';
+      chatSubmit.disabled = true;
+      chatSubmit.textContent = 'Sending';
+
+      try {
+        const response = await fetch('/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            message,
+            user_id: 'dashboard-user',
+            session_id: 'embedded-chat'
+          })
+        });
+
+        const data = await response.json();
+        if (!response.ok) {
+          throw new Error(data.detail || 'Request failed');
+        }
+
+        appendMessage('assistant', data.response || 'No response received.', {
+          trace_id: data.trace_id,
+          latency_ms: data.latency_ms,
+          steps_count: Array.isArray(data.steps) ? data.steps.length : undefined
+        });
+      } catch (error) {
+        appendMessage('system', error.message || 'Unable to reach the agent.');
+      } finally {
+        chatSubmit.disabled = false;
+        chatSubmit.textContent = 'Send';
+      }
+    });
+  </script>
 </body>
 </html>

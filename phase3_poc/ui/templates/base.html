@@ -3,81 +3,429 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Lyzr EvalOps POC — {% block title %}Dashboard{% endblock %}</title>
+  <title>Lyzr Evalops — {% block title %}Dashboard{% endblock %}</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
-    body { font-family: 'Inter', sans-serif; }
-    .gradient-header { background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a855f7 100%); }
-    .card { @apply bg-white rounded-xl shadow-sm border border-gray-100 p-5; }
-    .badge-green  { @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800; }
-    .badge-red    { @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800; }
-    .badge-yellow { @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800; }
-    .badge-blue   { @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800; }
-    .badge-purple { @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800; }
-    .nav-link  { @apply flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium text-gray-600 hover:bg-purple-50 hover:text-purple-700 transition-all; }
-    .nav-active { @apply flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium bg-purple-100 text-purple-700; }
-    .score-bar { height:8px; border-radius:4px; background:#e5e7eb; }
-    .score-fill { height:8px; border-radius:4px; background: linear-gradient(90deg,#6366f1,#a855f7); transition: width 0.6s ease; }
+    @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap');
+
+    :root {
+      --background: #ffffff;
+      --foreground: #252525;
+      --surface: #f6f6fb;
+      --surface-soft: #f9fafb;
+      --card: #ffffff;
+      --muted: #666666;
+      --border: #ebebeb;
+      --border-strong: rgba(37, 37, 37, 0.10);
+      --primary: #218188;
+      --primary-soft: #e4f4f5;
+      --primary-strong: #17646a;
+      --sidebar: #fcfcfd;
+      --success-bg: #edf8f0;
+      --success-text: #1f7a3d;
+      --warning-bg: #fff4e8;
+      --warning-text: #b56417;
+      --danger-bg: #fdecec;
+      --danger-text: #b42318;
+      --info-bg: #eef4ff;
+      --info-text: #2f5fa8;
+      --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.04);
+      --shadow-md: 0 10px 30px rgba(15, 23, 42, 0.06);
+      --radius-lg: 14px;
+      --radius-md: 10px;
+    }
+
+    html, body {
+      margin: 0;
+      min-height: 100%;
+      background: var(--surface);
+      color: var(--foreground);
+      font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+
+    .app-shell {
+      display: flex;
+      min-height: 100vh;
+      background: var(--surface);
+    }
+
+    .sidebar {
+      width: 248px;
+      background: var(--sidebar);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+    }
+
+    .brand-lockup {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 20px 20px 18px;
+      border-bottom: 1px solid var(--border);
+      background: var(--sidebar);
+    }
+
+    .brand-mark {
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      background: linear-gradient(180deg, var(--primary) 0%, var(--primary-strong) 100%);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 16px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .brand-title {
+      font-size: 18px;
+      font-weight: 700;
+      line-height: 1.2;
+      margin: 0;
+    }
+
+    .brand-subtitle {
+      margin: 2px 0 0;
+      color: #6a7384;
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    .nav-group {
+      padding: 18px 12px 0;
+    }
+
+    .nav-label {
+      padding: 0 12px 8px;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: #8a93a5;
+    }
+
+    .nav-link,
+    .nav-active {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 11px 12px;
+      border-radius: 12px;
+      font-size: 15px;
+      font-weight: 500;
+      text-decoration: none;
+      transition: background 0.18s ease, color 0.18s ease, box-shadow 0.18s ease;
+      margin-bottom: 4px;
+    }
+
+    .nav-link {
+      color: #3d4656;
+    }
+
+    .nav-link:hover {
+      background: var(--primary-soft);
+      color: var(--primary-strong);
+    }
+
+    .nav-active {
+      background: var(--primary-soft);
+      color: var(--primary-strong);
+      box-shadow: inset 0 0 0 1px rgba(33, 129, 136, 0.12);
+    }
+
+    .nav-icon {
+      width: 18px;
+      height: 18px;
+      flex-shrink: 0;
+    }
+
+    .status-dot {
+      margin-left: auto;
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: #22c55e;
+      box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.12);
+    }
+
+    .sidebar-footer {
+      margin-top: auto;
+      padding: 16px 20px 20px;
+      border-top: 1px solid var(--border);
+      color: #7b8495;
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .main-panel {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .page-wrap {
+      padding: 28px 32px;
+    }
+
+    .hero-panel {
+      background: radial-gradient(circle at top, rgba(33, 129, 136, 0.08), transparent 48%), var(--background);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      box-shadow: var(--shadow-sm);
+      padding: 28px 32px;
+      margin-bottom: 24px;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 12px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: var(--background);
+      color: #5c6678;
+      font-size: 12px;
+      font-weight: 600;
+      margin-bottom: 16px;
+    }
+
+    .page-title {
+      margin: 0;
+      font-size: 40px;
+      line-height: 1.1;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      color: #31343a;
+    }
+
+    .page-subtitle {
+      margin: 10px 0 0;
+      max-width: 820px;
+      color: #687385;
+      font-size: 16px;
+      line-height: 1.6;
+      font-weight: 500;
+    }
+
+    .content-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .card-section {
+      padding: 22px 24px;
+    }
+
+    .card-title {
+      font-size: 17px;
+      font-weight: 600;
+      color: #252525;
+      margin: 0;
+    }
+
+    .card-description {
+      font-size: 13px;
+      color: #6a7384;
+      margin: 4px 0 0;
+    }
+
+    .metric-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      box-shadow: var(--shadow-sm);
+      padding: 20px;
+    }
+
+    .metric-label {
+      margin: 0 0 8px;
+      font-size: 12px;
+      color: #7b8495;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      font-weight: 600;
+    }
+
+    .metric-value {
+      margin: 0;
+      font-size: 30px;
+      line-height: 1;
+      font-weight: 700;
+      color: #252525;
+    }
+
+    .metric-meta {
+      margin-top: 8px;
+      font-size: 13px;
+      color: #687385;
+      font-weight: 500;
+    }
+
+    .table-shell {
+      overflow-x: auto;
+    }
+
+    .table-clean {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+
+    .table-clean thead {
+      background: #fafbfc;
+    }
+
+    .table-clean th {
+      padding: 16px 24px;
+      text-align: left;
+      color: #515a69;
+      font-weight: 600;
+      font-size: 14px;
+      border-bottom: 1px solid rgba(37, 37, 37, 0.08);
+    }
+
+    .table-clean td {
+      padding: 16px 24px;
+      color: #3d4656;
+      border-bottom: 1px solid rgba(37, 37, 37, 0.06);
+      vertical-align: top;
+    }
+
+    .table-clean tbody tr:hover {
+      background: rgba(33, 129, 136, 0.03);
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 600;
+      line-height: 1.2;
+      border: 1px solid transparent;
+      white-space: nowrap;
+    }
+
+    .badge-green { background: var(--success-bg); color: var(--success-text); border-color: rgba(31, 122, 61, 0.12); }
+    .badge-red { background: var(--danger-bg); color: var(--danger-text); border-color: rgba(180, 35, 24, 0.12); }
+    .badge-yellow { background: var(--warning-bg); color: var(--warning-text); border-color: rgba(181, 100, 23, 0.12); }
+    .badge-blue { background: var(--info-bg); color: var(--info-text); border-color: rgba(47, 95, 168, 0.12); }
+    .badge-teal { background: var(--primary-soft); color: var(--primary-strong); border-color: rgba(33, 129, 136, 0.12); }
+    .badge-slate { background: #f2f4f7; color: #5c6678; border-color: rgba(92, 102, 120, 0.12); }
+
+    .score-bar {
+      height: 8px;
+      border-radius: 999px;
+      background: #e8ecf1;
+      overflow: hidden;
+    }
+
+    .score-fill {
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, #218188 0%, #45aab0 100%);
+      transition: width 0.4s ease;
+    }
+
+    .info-panel {
+      border-radius: 16px;
+      padding: 20px 24px;
+      border: 1px solid var(--border);
+      background: linear-gradient(180deg, #ffffff 0%, #fafbfc 100%);
+    }
+
+    .panel-teal {
+      background: linear-gradient(180deg, #f8fcfc 0%, #eef7f7 100%);
+      border-color: rgba(33, 129, 136, 0.12);
+    }
+
+    .mono-text {
+      font-family: 'SFMono-Regular', 'Menlo', 'Consolas', monospace;
+    }
+
+    .chat-placeholder {
+      min-height: 460px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 32px;
+    }
+
+    @media (max-width: 1100px) {
+      .sidebar { width: 216px; }
+      .page-wrap { padding: 20px; }
+      .page-title { font-size: 32px; }
+    }
+
+    @media (max-width: 900px) {
+      .app-shell { display: block; }
+      .sidebar { width: 100%; min-height: auto; }
+      .page-wrap { padding: 16px; }
+    }
   </style>
 </head>
-<body class="bg-gray-50 min-h-screen">
-
-  <!-- Sidebar -->
-  <div class="flex h-screen overflow-hidden">
-    <aside class="w-60 bg-white border-r border-gray-200 flex flex-col flex-shrink-0">
-      <div class="gradient-header px-5 py-4">
-        <div class="flex items-center gap-2">
-          <div class="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
-            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
-            </svg>
-          </div>
-          <div>
-            <p class="text-white font-bold text-sm">Lyzr EvalOps</p>
-            <p class="text-purple-200 text-xs">POC Dashboard</p>
-          </div>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand-lockup">
+        <div class="brand-mark">L</div>
+        <div>
+          <p class="brand-title">Lyzr Evalops</p>
+          <p class="brand-subtitle">Evaluation command center</p>
         </div>
       </div>
-      <nav class="flex-1 px-3 py-4 space-y-1">
+
+      <div class="nav-group">
+        <div class="nav-label">Workspace</div>
         <a href="/" class="{{ 'nav-active' if active == 'home' else 'nav-link' }}">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+          <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.9" d="M3 12l2-2 7-7 7 7 2 2M5 10v10a1 1 0 001 1h3m10-11v10a1 1 0 01-1 1h-3m-6 0h6"/></svg>
           Overview
         </a>
         <a href="/traces" class="{{ 'nav-active' if active == 'traces' else 'nav-link' }}">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+          <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.9" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a3 3 0 006 0"/></svg>
           Traces
         </a>
         <a href="/datasets" class="{{ 'nav-active' if active == 'datasets' else 'nav-link' }}">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4"/></svg>
+          <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.9" d="M4 7c0 2.21 3.58 4 8 4s8-1.79 8-4M4 12c0 2.21 3.58 4 8 4s8-1.79 8-4M4 17c0 2.21 3.58 4 8 4s8-1.79 8-4M4 7c0-2.21 3.58-4 8-4s8 1.79 8 4"/></svg>
           Datasets
         </a>
         <a href="/experiments" class="{{ 'nav-active' if active == 'experiments' else 'nav-link' }}">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
+          <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.9" d="M9 3h6m-5 0v5.17a2 2 0 01-.59 1.41l-5 5A2 2 0 005.83 18h12.34a2 2 0 001.41-3.41l-5-5A2 2 0 0114 8.17V3"/></svg>
           Experiments
         </a>
         <a href="/comparison" class="{{ 'nav-active' if active == 'comparison' else 'nav-link' }}">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2"/></svg>
+          <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.9" d="M8 7h3v10H8zM13 10h3v7h-3zM3 4h18v16H3z"/></svg>
           Comparison
         </a>
+      </div>
 
-        <div class="pt-2 pb-1">
-          <p class="px-4 text-xs font-semibold text-gray-400 uppercase tracking-wider">Live</p>
-        </div>
+      <div class="nav-group">
+        <div class="nav-label">Live</div>
         <a href="/chat" class="{{ 'nav-active' if active == 'chat' else 'nav-link' }}">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>
-          Chat Agent
-          <span class="ml-auto w-2 h-2 rounded-full bg-green-400 animate-pulse"></span>
+          <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.9" d="M8 10h.01M12 10h.01M16 10h.01M21 12a9 9 0 11-3.51-7.09L21 3v9z"/></svg>
+          Agent Chat
+          <span class="status-dot"></span>
         </a>
-      </nav>
-      <div class="px-4 py-3 border-t border-gray-100">
-        <p class="text-xs text-gray-400">Built for Lyzr · Phase 3 POC</p>
+      </div>
+
+      <div class="sidebar-footer">
+        <div>Lyzr Evalops</div>
+        <div>Phase 3 interface</div>
       </div>
     </aside>
 
-    <!-- Main content -->
-    <main class="flex-1 overflow-y-auto">
-      <div class="px-8 py-6">
+    <main class="main-panel">
+      <div class="page-wrap">
         {% block content %}{% endblock %}
       </div>
     </main>

@@ -2,95 +2,84 @@
 {% block title %}Traces{% endblock %}
 {% block content %}
 
-<div class="mb-6">
-  <h1 class="text-2xl font-bold text-gray-900">Traces</h1>
-  <p class="text-gray-500 mt-1">Every agent run captured — LangSmith (cloud) vs Lyzr+Bridge (local SQLite)</p>
-</div>
+<section class="hero-panel">
+  <div class="eyebrow">Trace review</div>
+  <h1 class="page-title">Execution Traces</h1>
+  <p class="page-subtitle">Inspect run history, latency, status, and platform-specific output from the live evaluation stack.</p>
+</section>
 
-<div class="grid grid-cols-2 gap-6">
-
-  <!-- LangSmith traces -->
-  <div class="bg-white rounded-xl border border-blue-100 shadow-sm">
-    <div class="px-5 py-4 border-b border-blue-50 flex items-center justify-between">
+<section class="grid grid-cols-1 xl:grid-cols-2 gap-6 mb-6">
+  <div class="content-card">
+    <div class="card-section border-b border-[var(--border)] flex items-center justify-between">
       <div>
-        <h2 class="font-semibold text-gray-800">LangSmith Traces</h2>
-        <p class="text-xs text-gray-400 mt-0.5">Stored in LangSmith cloud</p>
+        <h2 class="card-title">LangSmith Traces</h2>
+        <p class="card-description">Cloud trace records from the external evaluation path.</p>
       </div>
-      <span class="badge-blue">{{ ls_traces|length }} runs</span>
+      <span class="badge badge-blue">{{ ls_traces|length }} runs</span>
     </div>
-    <div class="divide-y divide-gray-50 max-h-96 overflow-y-auto">
+    <div class="max-h-[32rem] overflow-y-auto">
       {% if ls_traces %}
+      <div class="divide-y divide-[rgba(37,37,37,0.06)]">
         {% for t in ls_traces %}
-        <div class="px-5 py-3 hover:bg-gray-50">
-          <div class="flex items-center justify-between mb-1">
-            <span class="text-xs font-mono text-gray-400">{{ t.id[:12] }}…</span>
+        <div class="px-6 py-4 hover:bg-[rgba(33,129,136,0.03)]">
+          <div class="flex items-center justify-between gap-3 mb-2">
+            <span class="mono-text text-xs text-[#8a93a5]">{{ t.id[:12] }}...</span>
             <div class="flex items-center gap-2">
-              <span class="text-xs text-gray-400">{{ t.latency_ms|int }}ms</span>
-              <span class="badge-green">{{ t.status }}</span>
+              <span class="badge badge-slate">{{ t.latency_ms|int }} ms</span>
+              <span class="badge badge-green">{{ t.status }}</span>
             </div>
           </div>
-          <p class="text-sm text-gray-700 font-medium truncate">{{ t.input }}</p>
-          <p class="text-xs text-gray-400 truncate mt-0.5">{{ t.output[:80] }}…</p>
+          <div class="font-medium text-sm text-[#31343a]">{{ t.input }}</div>
+          <div class="text-sm text-[#6a7384] mt-1">{{ t.output[:120] }}{% if t.output|length > 120 %}...{% endif %}</div>
         </div>
         {% endfor %}
-      {% else %}
-        <div class="px-5 py-8 text-center text-gray-400 text-sm">
-          No LangSmith traces yet. Run <code class="bg-gray-100 px-1 rounded">run_poc.py</code> first.
-        </div>
-      {% endif %}
-    </div>
-  </div>
-
-  <!-- Lyzr+Bridge traces -->
-  <div class="bg-white rounded-xl border border-purple-100 shadow-sm">
-    <div class="px-5 py-4 border-b border-purple-50 flex items-center justify-between">
-      <div>
-        <h2 class="font-semibold text-gray-800">Lyzr + Bridge Traces</h2>
-        <p class="text-xs text-gray-400 mt-0.5">Intercepted at runtime → local SQLite</p>
       </div>
-      <span class="badge-purple">{{ lyzr_traces|length }} runs</span>
-    </div>
-    <div class="divide-y divide-gray-50 max-h-96 overflow-y-auto">
-      {% if lyzr_traces %}
-        {% for t in lyzr_traces %}
-        <div class="px-5 py-3 hover:bg-gray-50">
-          <div class="flex items-center justify-between mb-1">
-            <span class="text-xs font-mono text-gray-400">{{ t.id[:12] }}…</span>
-            <div class="flex items-center gap-2">
-              <span class="text-xs text-gray-400">{{ t.latency_ms|int }}ms</span>
-              <span class="badge-purple">v{{ t.agent_version }}</span>
-              <span class="badge-green">{{ t.status }}</span>
-            </div>
-          </div>
-          <p class="text-sm text-gray-700 font-medium truncate">{{ t.input }}</p>
-          <p class="text-xs text-gray-400 truncate mt-0.5">{{ t.output[:80] if t.output else '—' }}…</p>
-        </div>
-        {% endfor %}
       {% else %}
-        <div class="px-5 py-8 text-center text-gray-400 text-sm">
-          No Lyzr traces yet. Run <code class="bg-gray-100 px-1 rounded">run_poc.py</code> first.
-        </div>
+      <div class="px-6 py-16 text-center text-sm text-[#8a93a5]">No LangSmith traces available yet.</div>
       {% endif %}
     </div>
   </div>
 
-</div>
+  <div class="content-card">
+    <div class="card-section border-b border-[var(--border)] flex items-center justify-between">
+      <div>
+        <h2 class="card-title">Lyzr Traces</h2>
+        <p class="card-description">Runtime-captured traces stored locally for review and promotion.</p>
+      </div>
+      <span class="badge badge-teal">{{ lyzr_traces|length }} runs</span>
+    </div>
+    <div class="max-h-[32rem] overflow-y-auto">
+      {% if lyzr_traces %}
+      <div class="divide-y divide-[rgba(37,37,37,0.06)]">
+        {% for t in lyzr_traces %}
+        <div class="px-6 py-4 hover:bg-[rgba(33,129,136,0.03)]">
+          <div class="flex items-center justify-between gap-3 mb-2">
+            <span class="mono-text text-xs text-[#8a93a5]">{{ t.id[:12] }}...</span>
+            <div class="flex items-center gap-2">
+              <span class="badge badge-slate">{{ t.latency_ms|int }} ms</span>
+              <span class="badge badge-teal">v{{ t.agent_version }}</span>
+              <span class="badge badge-green">{{ t.status }}</span>
+            </div>
+          </div>
+          <div class="font-medium text-sm text-[#31343a]">{{ t.input }}</div>
+          <div class="text-sm text-[#6a7384] mt-1">{{ t.output[:120] if t.output else 'No output recorded' }}{% if t.output and t.output|length > 120 %}...{% endif %}</div>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div class="px-6 py-16 text-center text-sm text-[#8a93a5]">No Lyzr traces available yet.</div>
+      {% endif %}
+    </div>
+  </div>
+</section>
 
-<!-- What the bridge adds -->
-<div class="mt-6 bg-green-50 border border-green-200 rounded-xl p-5">
-  <h3 class="font-semibold text-green-800 mb-2">🔌 What the Bridge Added</h3>
-  <div class="grid grid-cols-3 gap-4 text-sm text-green-700">
-    <div><strong>Runtime Interceptor</strong><br><span class="text-xs">Wraps agent.run() — zero changes to agent code</span></div>
-    <div><strong>Trace ID per run</strong><br><span class="text-xs">Every run gets a UUID — attach feedback by ID</span></div>
-    <div><strong>Local SQLite store</strong><br><span class="text-xs">No cloud dependency — works offline for POC</span></div>
+<section class="info-panel panel-teal">
+  <h3 class="card-title mb-3">Trace Handling</h3>
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-[#536072]">
+    <div><strong>Runtime capture</strong><br>Traces are collected without changing the agent execution contract.</div>
+    <div><strong>Persistent identifiers</strong><br>Each run is addressable for feedback, review, and dataset promotion.</div>
+    <div><strong>Local durability</strong><br>Operational review works even when the cloud path is not available.</div>
   </div>
-  <div class="mt-3 bg-green-100 rounded p-3">
-    <code class="text-xs text-green-800">
-      tracer = LyzrTracer(agent, project="my-project")<br>
-      output, trace_id = tracer.run("How do I reset my password?", user_id="u1")<br>
-      tracer.add_feedback(trace_id, key="correctness", score=0.9)
-    </code>
-  </div>
-</div>
+</section>
 
 {% endblock %}

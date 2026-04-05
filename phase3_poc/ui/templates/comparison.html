@@ -2,177 +2,139 @@
 {% block title %}Comparison{% endblock %}
 {% block content %}
 
-<div class="mb-6">
-  <h1 class="text-2xl font-bold text-gray-900">Side-by-Side Comparison</h1>
-  <p class="text-gray-500 mt-1">LangSmith native EvalOps vs Lyzr + Bridge — identical agent, identical dataset, identical evaluators</p>
-</div>
+<section class="hero-panel">
+  <div class="eyebrow">Version analysis</div>
+  <h1 class="page-title">Comparison</h1>
+  <p class="page-subtitle">Compare version performance across the same dataset and evaluation criteria before making a release decision.</p>
+</section>
 
 {% if summary %}
-{% set ls     = summary.langsmith %}
-{% set lyzr1  = summary.lyzr_v1 %}
-{% set lyzr2  = summary.lyzr_v2 %}
-{% set dec    = summary.decision %}
-{% set v_colors = {"PROMOTE":"green","CANARY":"yellow","HOLD":"yellow","ROLLBACK":"red"} %}
-{% set vc = v_colors.get(dec.verdict, "gray") %}
+{% set ls = summary.langsmith %}
+{% set lyzr1 = summary.lyzr_v1 %}
+{% set lyzr2 = summary.lyzr_v2 %}
+{% set dec = summary.decision %}
+{% set verdict_class = "badge-green" if dec.verdict == "PROMOTE" else "badge-yellow" if dec.verdict in ["CANARY", "HOLD"] else "badge-red" %}
 
-<!-- Score delta table -->
-<div class="bg-white rounded-xl border border-gray-100 shadow-sm mb-6">
-  <div class="px-6 py-4 border-b border-gray-100">
-    <h2 class="font-semibold text-gray-800">Evaluation Scores — All Experiments</h2>
+<section class="content-card mb-6">
+  <div class="card-section border-b border-[var(--border)]">
+    <h2 class="card-title">Metric Comparison</h2>
+    <p class="card-description">Side-by-side scores for the current benchmark across reference and Lyzr-managed versions.</p>
   </div>
-  <table class="w-full text-sm">
-    <thead class="bg-gray-50">
-      <tr>
-        <th class="text-left px-6 py-3 text-gray-600 font-medium">Metric</th>
-        <th class="text-center px-4 py-3 text-blue-600 font-medium">LangSmith v1</th>
-        <th class="text-center px-4 py-3 text-purple-600 font-medium">Lyzr+Bridge v1</th>
-        <th class="text-center px-4 py-3 text-purple-600 font-medium">Lyzr+Bridge v2</th>
-        <th class="text-center px-4 py-3 text-gray-600 font-medium">Δ v1 → v2</th>
-        <th class="text-center px-4 py-3 text-gray-600 font-medium">Trend</th>
-      </tr>
-    </thead>
-    <tbody class="divide-y divide-gray-50">
-      {% for metric in ["correctness","helpfulness","conciseness"] %}
-      {% set ls_s  = ls.scores.get(metric, 0) %}
-      {% set l1_s  = lyzr1.scores.get(metric, 0) %}
-      {% set l2_s  = lyzr2.scores.get(metric, 0) %}
-      {% set delta = (l2_s - l1_s) | round(3) %}
-      <tr class="hover:bg-gray-50">
-        <td class="px-6 py-4 font-semibold text-gray-700 capitalize">{{ metric }}</td>
-        <td class="px-4 py-4 text-center">
-          <span class="text-lg font-bold text-blue-600">{{ "%.2f"|format(ls_s) }}</span>
-        </td>
-        <td class="px-4 py-4 text-center">
-          <span class="text-lg font-bold text-purple-600">{{ "%.2f"|format(l1_s) }}</span>
-        </td>
-        <td class="px-4 py-4 text-center">
-          <span class="text-lg font-bold text-purple-800">{{ "%.2f"|format(l2_s) }}</span>
-        </td>
-        <td class="px-4 py-4 text-center">
-          {% if delta > 0.03 %}
-          <span class="badge-green">+{{ "%.3f"|format(delta) }}</span>
-          {% elif delta < -0.03 %}
-          <span class="badge-red">{{ "%.3f"|format(delta) }}</span>
-          {% else %}
-          <span class="badge-yellow">{{ "%+.3f"|format(delta) }}</span>
-          {% endif %}
-        </td>
-        <td class="px-4 py-4 text-center text-lg">
-          {% if delta > 0.03 %}↑{% elif delta < -0.03 %}↓{% else %}→{% endif %}
-        </td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-</div>
+  <div class="table-shell">
+    <table class="table-clean">
+      <thead>
+        <tr>
+          <th>Metric</th>
+          <th class="text-center">LangSmith v1</th>
+          <th class="text-center">Lyzr v1</th>
+          <th class="text-center">Lyzr v2</th>
+          <th class="text-center">Delta</th>
+          <th class="text-center">Trend</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for metric in ["correctness", "helpfulness", "conciseness"] %}
+        {% set ls_s = ls.scores.get(metric, 0) %}
+        {% set l1_s = lyzr1.scores.get(metric, 0) %}
+        {% set l2_s = lyzr2.scores.get(metric, 0) %}
+        {% set delta = (l2_s - l1_s) | round(3) %}
+        <tr>
+          <td class="font-medium capitalize">{{ metric }}</td>
+          <td class="text-center"><span class="badge badge-blue">{{ "%.2f"|format(ls_s) }}</span></td>
+          <td class="text-center"><span class="badge badge-slate">{{ "%.2f"|format(l1_s) }}</span></td>
+          <td class="text-center"><span class="badge badge-teal">{{ "%.2f"|format(l2_s) }}</span></td>
+          <td class="text-center">
+            <span class="badge {{ 'badge-green' if delta > 0.03 else 'badge-red' if delta < -0.03 else 'badge-yellow' }}">
+              {{ "%+.3f"|format(delta) }}
+            </span>
+          </td>
+          <td class="text-center text-sm text-[#6a7384]">
+            {{ 'Improving' if delta > 0.03 else 'Declining' if delta < -0.03 else 'Stable' }}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
 
-<!-- Release decision -->
-<div class="bg-{{ vc }}-50 border border-{{ vc }}-200 rounded-xl p-6 mb-6">
-  <div class="flex items-start justify-between">
-    <div>
-      <p class="text-sm text-{{ vc }}-600 font-medium uppercase tracking-wide mb-1">Release Decision Gate</p>
-      <p class="text-3xl font-bold text-{{ vc }}-700 mb-2">
-        {% if dec.verdict == "PROMOTE" %}🚀{% elif dec.verdict == "CANARY" %}🐤{% elif dec.verdict == "HOLD" %}⏸️{% else %}🔄{% endif %}
-        {{ dec.verdict }}
-      </p>
-      <p class="text-{{ vc }}-700">{{ dec.reason }}</p>
-    </div>
-    <div class="text-right">
-      <p class="text-sm text-{{ vc }}-600 mb-2">What happens next:</p>
-      <div class="space-y-1 text-xs text-{{ vc }}-600">
-        <p {% if dec.verdict == "PROMOTE" %}class="font-bold"{% endif %}>PROMOTE → Deploy v2 to 100% traffic</p>
-        <p {% if dec.verdict == "CANARY" %}class="font-bold"{% endif %}>CANARY → Deploy v2 to 10%, monitor, ramp</p>
-        <p {% if dec.verdict == "HOLD" %}class="font-bold"{% endif %}>HOLD → Keep v1 running, iterate on v2</p>
-        <p {% if dec.verdict == "ROLLBACK" %}class="font-bold"{% endif %}>ROLLBACK → Revert to v1 immediately</p>
-      </div>
+<section class="grid grid-cols-1 xl:grid-cols-3 gap-6 mb-6">
+  <div class="metric-card xl:col-span-1">
+    <p class="metric-label">Decision</p>
+    <p class="metric-value text-[24px]">{{ dec.verdict }}</p>
+    <div class="mt-3"><span class="badge {{ verdict_class }}">{{ dec.verdict }}</span></div>
+    <div class="metric-meta">{{ dec.reason }}</div>
+  </div>
+  <div class="content-card xl:col-span-2">
+    <div class="card-section">
+      <h2 class="card-title mb-4">Score Radar</h2>
+      <canvas id="radarChart"></canvas>
     </div>
   </div>
-</div>
+</section>
 
-<!-- Radar chart -->
-<div class="grid grid-cols-2 gap-6 mb-6">
-  <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
-    <h2 class="font-semibold text-gray-800 mb-4">Radar — All Platforms</h2>
-    <canvas id="radarChart"></canvas>
+<section class="grid grid-cols-1 xl:grid-cols-2 gap-6 mb-6">
+  <div class="content-card">
+    <div class="card-section">
+      <h2 class="card-title mb-4">Delta by Metric</h2>
+      <canvas id="deltaChart"></canvas>
+    </div>
   </div>
-  <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
-    <h2 class="font-semibold text-gray-800 mb-4">Δ Delta: Lyzr v1 → v2</h2>
-    <canvas id="deltaChart"></canvas>
+  <div class="info-panel panel-teal">
+    <h3 class="card-title mb-3">Release Guidance</h3>
+    <div class="space-y-3 text-sm text-[#536072]">
+      <div><strong>Promote</strong><br>Roll out the newer version broadly.</div>
+      <div><strong>Canary</strong><br>Release to a small segment and monitor.</div>
+      <div><strong>Hold</strong><br>Keep the baseline active while iterating.</div>
+      <div><strong>Rollback</strong><br>Revert to the previous stable version.</div>
+    </div>
   </div>
-</div>
+</section>
 
 <script>
 const metrics = ['Correctness', 'Helpfulness', 'Conciseness'];
-const ls_s  = [{{ ls.scores.get("correctness",0) }}, {{ ls.scores.get("helpfulness",0) }}, {{ ls.scores.get("conciseness",0) }}];
-const l1_s  = [{{ lyzr1.scores.get("correctness",0) }}, {{ lyzr1.scores.get("helpfulness",0) }}, {{ lyzr1.scores.get("conciseness",0) }}];
-const l2_s  = [{{ lyzr2.scores.get("correctness",0) }}, {{ lyzr2.scores.get("helpfulness",0) }}, {{ lyzr2.scores.get("conciseness",0) }}];
-const deltas = l2_s.map((v, i) => (v - l1_s[i]).toFixed(3));
+const ls_s = [{{ ls.scores.get("correctness", 0) }}, {{ ls.scores.get("helpfulness", 0) }}, {{ ls.scores.get("conciseness", 0) }}];
+const l1_s = [{{ lyzr1.scores.get("correctness", 0) }}, {{ lyzr1.scores.get("helpfulness", 0) }}, {{ lyzr1.scores.get("conciseness", 0) }}];
+const l2_s = [{{ lyzr2.scores.get("correctness", 0) }}, {{ lyzr2.scores.get("helpfulness", 0) }}, {{ lyzr2.scores.get("conciseness", 0) }}];
+const deltas = l2_s.map((v, i) => Number((v - l1_s[i]).toFixed(3)));
 
 new Chart(document.getElementById('radarChart'), {
   type: 'radar',
   data: {
     labels: metrics,
     datasets: [
-      { label: 'LangSmith v1', data: ls_s,  borderColor: '#3b82f6', backgroundColor: '#3b82f620', pointBackgroundColor:'#3b82f6' },
-      { label: 'Lyzr+Bridge v1', data: l1_s, borderColor: '#8b5cf6', backgroundColor: '#8b5cf620', pointBackgroundColor:'#8b5cf6' },
-      { label: 'Lyzr+Bridge v2', data: l2_s, borderColor: '#a855f7', backgroundColor: '#a855f720', pointBackgroundColor:'#a855f7' },
+      { label: 'LangSmith v1', data: ls_s, borderColor: '#4f81c7', backgroundColor: '#4f81c720', pointBackgroundColor: '#4f81c7' },
+      { label: 'Lyzr v1', data: l1_s, borderColor: '#7f8ea8', backgroundColor: '#7f8ea820', pointBackgroundColor: '#7f8ea8' },
+      { label: 'Lyzr v2', data: l2_s, borderColor: '#218188', backgroundColor: '#21818820', pointBackgroundColor: '#218188' }
     ]
   },
   options: { scales: { r: { min: 0, max: 1, ticks: { stepSize: 0.2 } } } }
 });
 
-const deltaColors = deltas.map(d => d > 0.03 ? '#22c55e' : d < -0.03 ? '#ef4444' : '#eab308');
+const deltaColors = deltas.map(d => d > 0.03 ? '#1f7a3d' : d < -0.03 ? '#b42318' : '#b56417');
 new Chart(document.getElementById('deltaChart'), {
   type: 'bar',
   data: {
     labels: metrics,
     datasets: [{
-      label: 'Score delta (v1 → v2)',
+      label: 'Version delta',
       data: deltas,
       backgroundColor: deltaColors,
       borderColor: deltaColors,
       borderWidth: 1,
-      borderRadius: 4,
+      borderRadius: 6
     }]
   },
   options: {
     scales: { y: { min: -0.3, max: 0.3, ticks: { stepSize: 0.1 } } },
-    plugins: { legend: { display: false } },
+    plugins: { legend: { display: false } }
   }
 });
 </script>
-
-<!-- What LangSmith does vs what the bridge adds -->
-<div class="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
-  <h2 class="font-semibold text-gray-800 mb-4">EvalOps Workflow Comparison</h2>
-  <div class="grid grid-cols-2 gap-6 text-sm">
-    <div>
-      <p class="font-semibold text-blue-700 mb-3">🔵 LangSmith — How it works</p>
-      <div class="space-y-2 text-gray-600">
-        <div class="flex items-start gap-2"><span class="text-blue-500 mt-0.5">→</span><span><strong>agent.invoke()</strong> auto-traced to LangSmith cloud</span></div>
-        <div class="flex items-start gap-2"><span class="text-blue-500 mt-0.5">→</span><span><strong>client.list_runs()</strong> fetches traces programmatically</span></div>
-        <div class="flex items-start gap-2"><span class="text-blue-500 mt-0.5">→</span><span><strong>client.create_dataset()</strong> manages eval examples</span></div>
-        <div class="flex items-start gap-2"><span class="text-blue-500 mt-0.5">→</span><span><strong>evaluate()</strong> runs agent × dataset × evaluators</span></div>
-        <div class="flex items-start gap-2"><span class="text-blue-500 mt-0.5">→</span><span><strong>Compare Experiments UI</strong> shows A/B diff</span></div>
-      </div>
-    </div>
-    <div>
-      <p class="font-semibold text-purple-700 mb-3">🟣 Lyzr + Bridge — How it works</p>
-      <div class="space-y-2 text-gray-600">
-        <div class="flex items-start gap-2"><span class="text-purple-500 mt-0.5">→</span><span><strong>LyzrTracer.run()</strong> intercepts at runtime, stores to SQLite</span></div>
-        <div class="flex items-start gap-2"><span class="text-purple-500 mt-0.5">→</span><span><strong>db.list_traces()</strong> fetches from local SQLite store</span></div>
-        <div class="flex items-start gap-2"><span class="text-purple-500 mt-0.5">→</span><span><strong>DatasetStore.create()</strong> manages eval examples locally</span></div>
-        <div class="flex items-start gap-2"><span class="text-purple-500 mt-0.5">→</span><span><strong>ExperimentRunner.run()</strong> evaluates with LLM judge</span></div>
-        <div class="flex items-start gap-2"><span class="text-purple-500 mt-0.5">→</span><span><strong>This dashboard</strong> shows the comparison live</span></div>
-      </div>
-    </div>
-  </div>
-</div>
-
 {% else %}
-<div class="bg-white rounded-xl border border-gray-100 shadow-sm p-12 text-center">
-  <p class="text-gray-400 text-sm">No comparison data yet. Run <code class="bg-gray-100 px-1 rounded">run_poc.py</code> to generate everything.</p>
-</div>
+<section class="content-card">
+  <div class="card-section text-center py-20 text-[#8a93a5]">No comparison data is available yet.</div>
+</section>
 {% endif %}
 
 {% endblock %}

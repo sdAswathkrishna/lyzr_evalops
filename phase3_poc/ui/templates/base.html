@@ -258,6 +258,29 @@
       height: 100vh;
       border-left: 1px solid var(--border);
       background: #fbfcfe;
+      transition: width 0.3s ease, opacity 0.3s ease;
+      position: relative;
+    }
+
+    .chat-rail.collapsed {
+      width: 48px;
+      overflow: hidden;
+    }
+
+    .chat-rail.collapsed .chat-shell {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .chat-rail.collapsed .chat-toggle-btn {
+      top: 50%;
+      right: 8px;
+      left: auto;
+      transform: translateY(-50%) rotate(180deg);
+    }
+
+    .chat-rail.collapsed .chat-toggle-btn:hover {
+      transform: translateY(-50%) rotate(180deg) scale(1.05);
     }
 
     .chat-shell {
@@ -273,6 +296,34 @@
       padding: 18px 18px 14px;
       border-bottom: 1px solid var(--border);
       background: #ffffff;
+      position: relative;
+    }
+
+    .chat-toggle-btn {
+      position: absolute;
+      top: 18px;
+      right: 18px;
+      width: 32px;
+      height: 32px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: white;
+      color: #5c6678;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      z-index: 100;
+      padding: 0;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.06);
+    }
+
+    .chat-toggle-btn:hover {
+      background: #f1f3f6;
+      border-color: rgba(33, 129, 136, 0.3);
+      color: var(--primary-strong);
+      transform: scale(1.05);
     }
 
     .chat-title {
@@ -280,6 +331,7 @@
       font-size: 15px;
       font-weight: 700;
       color: #252525;
+      padding-right: 40px;
     }
 
     .chat-subtitle {
@@ -807,11 +859,16 @@
         </div>
       </div>
       {% block chat_rail %}
-      <aside class="chat-rail">
+      <aside class="chat-rail" id="chatRail">
+        <button class="chat-toggle-btn" id="chatToggle" type="button" aria-label="Toggle chat">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M9 18l6-6-6-6"/>
+          </svg>
+        </button>
         <section class="chat-shell">
           <div class="chat-header">
-            <h2 class="chat-title">Agent Workspace</h2>
-            <p class="chat-subtitle">Chat with the connected agent.</p>
+            <h2 class="chat-title">Customer Support Agent</h2>
+            <p class="chat-subtitle">Chat with the ACME customer support agent.</p>
             <div class="chat-status">Agent connected</div>
           </div>
           <div class="chat-body" id="chatBody">
@@ -854,8 +911,78 @@
     const chatBody = document.getElementById('chatBody');
     const chatSubmit = document.getElementById('chatSubmit');
     const chatEmpty = document.getElementById('chatEmpty');
+    const chatRail = document.getElementById('chatRail');
+    const chatToggle = document.getElementById('chatToggle');
 
-    function appendMessage(role, text, meta = {}) {
+    const CHAT_STORAGE_KEY = 'lyzr-evalops-chat-messages';
+    const CHAT_STATE_KEY = 'lyzr-evalops-chat-collapsed';
+
+    // Load chat messages from localStorage
+    function loadChatMessages() {
+      try {
+        const stored = window.localStorage.getItem(CHAT_STORAGE_KEY);
+        if (stored) {
+          const messages = JSON.parse(stored);
+          messages.forEach(msg => {
+            appendMessage(msg.role, msg.text, msg.meta, false);
+          });
+        }
+      } catch (e) {
+        console.warn('Failed to load chat messages:', e);
+      }
+    }
+
+    // Save chat messages to localStorage
+    function saveChatMessages() {
+      try {
+        const messages = Array.from(chatBody.querySelectorAll('.message')).map(msgEl => {
+          const role = msgEl.classList.contains('message-user') ? 'user' :
+                       msgEl.classList.contains('message-assistant') ? 'assistant' : 'system';
+          const bubble = msgEl.querySelector('.message-bubble');
+          const text = bubble ? bubble.textContent : '';
+          
+          const meta = {};
+          const traceBadges = msgEl.querySelectorAll('.chat-trace .badge');
+          traceBadges.forEach(badge => {
+            const text = badge.textContent;
+            if (text.includes('Trace')) {
+              meta.trace_id = text.replace('Trace ', '').replace('...', '');
+            } else if (text.includes('ms')) {
+              meta.latency_ms = parseInt(text);
+            } else if (text.includes('steps')) {
+              meta.steps_count = parseInt(text);
+            }
+          });
+
+          return { role, text, meta };
+        });
+        window.localStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify(messages));
+      } catch (e) {
+        console.warn('Failed to save chat messages:', e);
+      }
+    }
+
+    // Listen for storage changes from other tabs
+    window.addEventListener('storage', (e) => {
+      if (e.key === CHAT_STORAGE_KEY && e.newValue) {
+        try {
+          // Clear current messages
+          chatBody.innerHTML = '';
+          const messages = JSON.parse(e.newValue);
+          if (messages.length === 0 && chatEmpty) {
+            chatBody.appendChild(chatEmpty);
+          } else {
+            messages.forEach(msg => {
+              appendMessage(msg.role, msg.text, msg.meta, false);
+            });
+          }
+        } catch (err) {
+          console.warn('Failed to sync chat messages:', err);
+        }
+      }
+    });
+
+    function appendMessage(role, text, meta = {}, shouldSave = true) {
       if (chatEmpty) {
         chatEmpty.remove();
       }
@@ -903,6 +1030,10 @@
 
       chatBody.appendChild(wrapper);
       chatBody.scrollTop = chatBody.scrollHeight;
+
+      if (shouldSave) {
+        saveChatMessages();
+      }
     }
 
     chatForm.addEventListener('submit', async (event) => {
@@ -916,7 +1047,7 @@
       chatSubmit.style.opacity = '0.6';
 
       try {
-        const response = await fetch('/api/chat', {
+        const response = await fetch('/api/chat/lyzr', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -943,6 +1074,23 @@
         chatSubmit.style.opacity = '1';
       }
     });
+
+    // Load saved chat messages on page load
+    loadChatMessages();
+
+    // Chat rail collapse/expand
+    const savedChatState = window.localStorage.getItem(CHAT_STATE_KEY);
+    if (savedChatState === 'collapsed') {
+      chatRail.classList.add('collapsed');
+    }
+
+    if (chatToggle) {
+      chatToggle.addEventListener('click', () => {
+        chatRail.classList.toggle('collapsed');
+        const isCollapsed = chatRail.classList.contains('collapsed');
+        window.localStorage.setItem(CHAT_STATE_KEY, isCollapsed ? 'collapsed' : 'expanded');
+      });
+    }
 
     const savedSidebarState = window.localStorage.getItem('lyzr-evalops-sidebar');
     if (savedSidebarState === 'collapsed') {

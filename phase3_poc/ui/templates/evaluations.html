@@ -178,6 +178,14 @@
     line-height: 1.6;
   }
 
+  .eval-row {
+    cursor: pointer;
+    transition: background 0.15s ease;
+  }
+  .eval-row:hover {
+    background: rgba(33,129,136,0.04);
+  }
+
   /* ── Create evaluator modal ──────────────────────────────────────────── */
   .modal-overlay {
     display: none;
@@ -330,6 +338,31 @@
   </div>
 </div>
 
+<!-- ── Model selection ──────────────────────────────────────────────────── -->
+<div style="margin:20px 0 8px;display:flex;align-items:center;justify-content:space-between;">
+  <p style="margin:0;font-size:12px;font-weight:600;color:#515a69;">
+    Select models to run &nbsp;<span style="font-weight:400;color:#8a93a5;">(click to toggle)</span>
+  </p>
+  <span id="modelSelCount" style="font-size:11.5px;color:#7b8495;">0 selected</span>
+</div>
+
+<div class="eval-def-grid" id="modelDefGrid">
+  {% for model in eval_models %}
+  <div class="eval-def-card {{ 'selected' if loop.first }}"
+       data-model="{{ model }}">
+    <div class="card-check"></div>
+    <p class="eval-card-name">{{ model }}</p>
+    <p class="eval-card-desc">
+      {% if 'mini' in model %}Fast and cost-effective model for quick evaluations.
+      {% elif 'gpt-4o' in model %}Most capable model for complex evaluations.
+      {% elif '3.5' in model %}Balanced performance and cost.
+      {% else %}OpenAI model
+      {% endif %}
+    </p>
+  </div>
+  {% endfor %}
+</div>
+
 <!-- ── Run panel ─────────────────────────────────────────────────────────── -->
 <div class="run-panel">
   <div class="run-field">
@@ -346,9 +379,6 @@
     <span class="run-label">Evaluation name (optional)</span>
     <input type="text" class="run-select" id="runEvalName"
            placeholder="Auto-generated if blank" style="min-width:200px;">
-  </div>
-  <div class="sel-summary" id="selSummary">
-    <strong id="selCountSummary">0</strong> evaluators · all models
   </div>
   <button class="btn-run" id="btnRun">
     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor">
@@ -369,12 +399,11 @@
   <div class="table-shell">
     <table class="table-clean" style="table-layout:fixed;">
       <colgroup>
-        <col style="width:220px">
-        <col style="width:160px">
-        <col style="width:80px">
-        <col style="width:100px">
-        <col style="width:260px">
-        <col style="width:90px">
+        <col style="width:24%">
+        <col style="width:18%">
+        <col style="width:10%">
+        <col style="width:12%">
+        <col style="width:36%">
       </colgroup>
       <thead>
         <tr>
@@ -383,12 +412,11 @@
           <th>Version</th>
           <th>Date</th>
           <th>Scores</th>
-          <th></th>
         </tr>
       </thead>
-      <tbody>
+      <tbody id="evalTableBody">
         {% for ev in evaluations %}
-        <tr>
+        <tr class="eval-row" data-eval-id="{{ ev.id }}">
           <td style="font-weight:600;color:#252525;">{{ ev.name }}</td>
           <td style="color:#6a7384;font-size:11.5px;">{{ ev.dataset_id[:12] if ev.dataset_id else '—' }}…</td>
           <td><span class="badge badge-teal">{{ ev.agent_version or 'v1' }}</span></td>
@@ -403,15 +431,9 @@
             <span style="font-size:11px;color:#8a93a5;">No scores</span>
             {% endfor %}
           </td>
-          <td>
-            <a href="/evaluations/{{ ev.id }}"
-               style="font-size:12px;font-weight:600;color:var(--primary-strong);text-decoration:none;">
-              View →
-            </a>
-          </td>
         </tr>
         {% else %}
-        <tr><td colspan="6" class="empty-state">No evaluations run yet. Select evaluators above and click Run.</td></tr>
+        <tr><td colspan="5" class="empty-state">No evaluations run yet. Select evaluators above and click Run.</td></tr>
         {% endfor %}
       </tbody>
     </table>
@@ -455,9 +477,9 @@
 <script>
   const evalDefs = {{ evaluator_defs | tojson }};
 
-  // ── Card toggle ─────────────────────────────────────────────────────────
+  // ── Evaluator card toggle ────────────────────────────────────────────────
   // Pre-select first card
-  const cards = Array.from(document.querySelectorAll('.eval-def-card:not(.create-card)'));
+  const cards = Array.from(document.querySelectorAll('#evalDefGrid .eval-def-card:not(.create-card)'));
   if (cards.length > 0) cards[0].classList.add('selected');
 
   cards.forEach(card => {
@@ -468,25 +490,49 @@
   });
 
   function getSelectedIds() {
-    return Array.from(document.querySelectorAll('.eval-def-card.selected:not(.create-card)'))
+    return Array.from(document.querySelectorAll('#evalDefGrid .eval-def-card.selected:not(.create-card)'))
       .map(c => c.dataset.evId);
   }
 
   function updateSelCount() {
     const n = getSelectedIds().length;
-    document.getElementById('selCount').textContent        = `${n} selected`;
-    document.getElementById('selCountSummary').textContent = n || 'All';
+    document.getElementById('selCount').textContent = `${n} selected`;
   }
   updateSelCount();
 
+  // ── Model card toggle ─────────────────────────────────────────────────────
+  const modelCards = Array.from(document.querySelectorAll('#modelDefGrid .eval-def-card'));
+  if (modelCards.length > 0) modelCards[0].classList.add('selected');
+
+  modelCards.forEach(card => {
+    card.addEventListener('click', () => {
+      card.classList.toggle('selected');
+      updateModelSelCount();
+    });
+  });
+
+  function getSelectedModels() {
+    return Array.from(document.querySelectorAll('#modelDefGrid .eval-def-card.selected'))
+      .map(c => c.dataset.model);
+  }
+
+  function updateModelSelCount() {
+    const n = getSelectedModels().length;
+    document.getElementById('modelSelCount').textContent = `${n} selected`;
+  }
+  updateModelSelCount();
+
   // ── Run evaluation ──────────────────────────────────────────────────────
   document.getElementById('btnRun').addEventListener('click', async () => {
-    const dsId  = document.getElementById('runDatasetSelect').value;
-    const name  = document.getElementById('runEvalName').value.trim();
-    const evIds = getSelectedIds();
-    const btn   = document.getElementById('btnRun');
+    const dsId   = document.getElementById('runDatasetSelect').value;
+    const name   = document.getElementById('runEvalName').value.trim();
+    const evIds  = getSelectedIds();
+    const models = getSelectedModels();
+    const btn    = document.getElementById('btnRun');
 
     if (!dsId) { showRunStatus('Please select a dataset.', 'error'); return; }
+    if (evIds.length === 0) { showRunStatus('Please select at least one evaluator.', 'error'); return; }
+    if (models.length === 0) { showRunStatus('Please select at least one model.', 'error'); return; }
 
     btn.disabled = true;
     btn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 2v4m0 12v4M4.93 4.93l2.83 2.83m8.48 8.48 2.83 2.83M2 12h4m12 0h4M4.93 19.07l2.83-2.83m8.48-8.48 2.83-2.83"/></svg> Running…`;
@@ -499,7 +545,7 @@
         body: JSON.stringify({
           evaluator_ids: evIds,
           eval_name: name,
-          models: [],
+          models: models,
         }),
       });
       const d = await r.json();
@@ -526,6 +572,14 @@
     el.innerHTML = msg;
     el.className = `run-status visible ${type}`;
   }
+
+  // ── Clickable evaluation rows ────────────────────────────────────────────
+  document.querySelectorAll('.eval-row').forEach(row => {
+    row.addEventListener('click', () => {
+      const evalId = row.dataset.evalId;
+      window.location.href = `/evaluations/${evalId}`;
+    });
+  });
 
   // ── Create evaluator modal ──────────────────────────────────────────────
   document.getElementById('createEvalCard').addEventListener('click', () => {

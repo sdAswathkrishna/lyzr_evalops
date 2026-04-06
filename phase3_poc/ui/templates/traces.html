@@ -36,6 +36,39 @@
     cursor: pointer;
   }
 
+  .dataset-new-input {
+    border: 1px solid rgba(33,129,136,0.4);
+    border-radius: 7px;
+    background: white;
+    color: #3d4656;
+    font: inherit;
+    font-size: 12px;
+    padding: 5px 8px;
+    width: 160px;
+    outline: none;
+  }
+  .dataset-new-input:focus {
+    border-color: rgba(33,129,136,0.7);
+    box-shadow: 0 0 0 3px rgba(33,129,136,0.1);
+  }
+  .dataset-new-input::placeholder { color: #9aa5b8; }
+
+  .btn-ds-mode {
+    appearance: none;
+    border: 1px solid rgba(33,129,136,0.3);
+    border-radius: 7px;
+    background: rgba(33,129,136,0.05);
+    color: var(--primary-strong);
+    font: inherit;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 4px 9px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.15s ease;
+  }
+  .btn-ds-mode:hover { background: rgba(33,129,136,0.12); }
+
   .btn-bulk-add {
     appearance: none;
     border: none;
@@ -67,44 +100,117 @@
   .btn-clear-sel:hover { background: #f1f3f6; }
 
   /* Table checkbox column */
-  .col-check { width: 36px; padding-left: 14px !important; }
-  input[type="checkbox"] { accent-color: var(--primary); cursor: pointer; width: 14px; height: 14px; }
+  .col-check { 
+    width: 40px; 
+    padding-left: 14px !important; 
+    padding-right: 8px !important;
+  }
+  input[type="checkbox"] { 
+    accent-color: var(--primary); 
+    cursor: pointer; 
+    width: 14px; 
+    height: 14px; 
+  }
+
+  /* Prevent badge truncation */
+  .trace-row td {
+    vertical-align: middle;
+  }
+  .trace-row .badge {
+    white-space: nowrap;
+  }
 
   /* Row selected highlight */
   tr.row-selected { background: rgba(33,129,136,0.05) !important; }
 
-  /* Detail panel */
-  .traces-layout {
+  /* Trace row hover and expanded state */
+  .trace-row {
+    cursor: pointer;
+    transition: background 0.15s ease;
+  }
+  .trace-row:hover {
+    background: rgba(33,129,136,0.03);
+  }
+  .trace-row.expanded {
+    background: rgba(33,129,136,0.06) !important;
+  }
+
+  /* Detail row (inline expandable) */
+  .trace-detail-row {
+    display: none;
+  }
+  .trace-detail-row.visible {
+    display: table-row;
+  }
+  .trace-detail-cell {
+    padding: 0 !important;
+    background: #fafbfc;
+    border-top: 1px solid var(--border);
+  }
+  .trace-detail-content {
+    padding: 20px;
+    animation: slideDown 0.2s ease;
+  }
+  @keyframes slideDown {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .detail-grid {
     display: grid;
-    grid-template-columns: 1fr 320px;
-    gap: 14px;
-    align-items: start;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 16px;
   }
-  .detail-panel {
-    position: sticky;
-    top: 14px;
-    background: var(--card);
+  .detail-item {
     border: 1px solid var(--border);
-    border-radius: 12px;
-    box-shadow: var(--shadow-sm);
-    overflow: hidden;
-  }
-  .detail-header {
-    padding: 12px 14px 10px;
-    border-bottom: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 12px;
     background: white;
   }
-  .detail-title { font-size: 13px; font-weight: 700; color: #252525; margin: 0; }
-  .detail-body { padding: 12px 14px; display: flex; flex-direction: column; gap: 10px; }
-  .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-  .detail-item { border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; background: #fbfcfe; }
-  .detail-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em; color: #8a93a5; font-weight: 600; margin-bottom: 3px; }
-  .detail-value { font-size: 12px; color: #31343a; word-break: break-word; }
-  .detail-block { display: flex; flex-direction: column; gap: 4px; }
+  .detail-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #8a93a5;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+  .detail-value {
+    font-size: 13px;
+    color: #252525;
+    font-weight: 600;
+    word-break: break-word;
+  }
+
+  .detail-io-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  .detail-block {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
   .detail-text {
-    border: 1px solid var(--border); border-radius: 8px; background: #fbfcfe;
-    padding: 9px 10px; font-size: 11.5px; line-height: 1.5; color: #3d4656;
-    white-space: pre-wrap; word-break: break-word; max-height: 180px; overflow-y: auto;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: white;
+    padding: 12px;
+    font-size: 12px;
+    line-height: 1.6;
+    color: #3d4656;
+    white-space: pre-wrap;
+    word-break: break-word;
+    max-height: 240px;
+    overflow-y: auto;
   }
 </style>
 
@@ -116,152 +222,185 @@
 <!-- Bulk action bar (shown when rows are selected) -->
 <div class="bulk-bar" id="bulkBar">
   <span class="bulk-count" id="bulkCount">0 selected</span>
-  <select class="dataset-select-inline" id="bulkDatasetSelect">
-    {% if datasets %}
-      {% for ds in datasets %}
-      <option value="{{ ds.name }}">{{ ds.name }}</option>
-      {% endfor %}
-    {% else %}
-      <option value="production-traces">production-traces</option>
-    {% endif %}
-  </select>
+
+  <!-- Existing dataset selector (shown by default) -->
+  <div id="dsExistingWrap" style="display:flex;align-items:center;gap:6px;">
+    <select class="dataset-select-inline" id="bulkDatasetSelect">
+      {% if datasets %}
+        {% for ds in datasets %}
+        <option value="{{ ds.name }}">{{ ds.name }}</option>
+        {% endfor %}
+      {% else %}
+        <option value="" disabled selected>No datasets yet</option>
+      {% endif %}
+    </select>
+    <button class="btn-ds-mode" id="btnSwitchNew" title="Create a new dataset">+ New</button>
+  </div>
+
+  <!-- New dataset name input (hidden by default) -->
+  <div id="dsNewWrap" style="display:none;align-items:center;gap:6px;">
+    <input class="dataset-new-input" id="newDatasetName" type="text" placeholder="New dataset name…" autocomplete="off">
+    <button class="btn-ds-mode" id="btnSwitchExisting" title="Use existing dataset">← Existing</button>
+  </div>
+
   <button class="btn-bulk-add" id="btnBulkAdd">Add to Dataset</button>
   <button class="btn-clear-sel" id="btnClearSel">Clear selection</button>
   <span id="bulkStatus" style="font-size:11.5px;color:var(--primary-strong);font-weight:600;"></span>
 </div>
 
-<div class="traces-layout">
-  <!-- Main table -->
-  <div>
-    <div class="content-card">
-      <div class="table-shell">
-        <table class="table-clean" style="table-layout:fixed;">
-          <colgroup>
-            <col style="width:36px">
-            <col style="width:180px">
-            <col style="width:240px">
-            <col style="width:70px">
-            <col style="width:72px">
-            <col style="width:68px">
-            <col style="width:130px">
-            <col style="width:110px">
-          </colgroup>
-          <thead>
-            <tr>
-              <th class="col-check">
-                <input type="checkbox" id="checkAll" title="Select all">
-              </th>
-              <th>Input</th>
-              <th>Output</th>
-              <th>Version</th>
-              <th>Latency</th>
-              <th>Tokens</th>
-              <th>Status</th>
-              <th>Timestamp</th>
-            </tr>
-          </thead>
-          <tbody id="tracesTbody">
-            {% for t in traces %}
-            <tr class="table-row-action trace-row" data-trace-id="{{ t.id }}" data-index="{{ loop.index0 }}">
-              <td class="col-check" onclick="event.stopPropagation()">
-                <input type="checkbox" class="row-check" data-id="{{ t.id }}">
-              </td>
-              <td><div class="table-cell-clamp" style="font-weight:500;color:#31343a;">{{ t.input or '—' }}</div></td>
-              <td><div class="table-cell-clamp">{{ t.output or '—' }}</div></td>
-              <td><span class="badge badge-teal">{{ t.agent_version or 'v1' }}</span></td>
-              <td>{{ t.latency_ms|int if t.latency_ms else '—' }} {% if t.latency_ms %}ms{% endif %}</td>
-              <td>{{ t.token_count or '—' }}</td>
-              <td>
-                <span class="badge {{ 'badge-green' if t.status == 'success' else 'badge-red' }}">
-                  {{ 'Success' if t.status == 'success' else 'Error' }}
-                </span>
-              </td>
-              <td style="font-size:11px;color:#8a93a5;">{{ t.timestamp[:16].replace('T',' ') if t.timestamp else '—' }}</td>
-            </tr>
-            {% else %}
-            <tr><td colspan="8" style="text-align:center;padding:32px;color:#8a93a5;font-size:12px;">No traces yet. Chat with the agent to generate traces.</td></tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </div>
+<div class="content-card">
+  <div class="table-shell">
+    <table class="table-clean" style="table-layout:fixed;">
+      <colgroup>
+        <col style="width:40px">
+        <col style="width:26%">
+        <col style="width:27%">
+        <col style="width:80px">
+        <col style="width:100px">
+        <col style="width:65px">
+        <col style="width:90px">
+        <col style="width:140px">
+      </colgroup>
+      <thead>
+        <tr>
+          <th class="col-check">
+            <input type="checkbox" id="checkAll" title="Select all">
+          </th>
+          <th>Input</th>
+          <th>Output</th>
+          <th>Version</th>
+          <th>Latency</th>
+          <th>Tokens</th>
+          <th>Status</th>
+          <th>Timestamp</th>
+        </tr>
+      </thead>
+      <tbody id="tracesTbody">
+        {% for t in traces %}
+        <!-- Main trace row -->
+        <tr class="trace-row" data-trace-id="{{ t.id }}" data-trace='{{ t|tojson }}'>
+          <td class="col-check" onclick="event.stopPropagation()">
+            <input type="checkbox" class="row-check" data-id="{{ t.id }}">
+          </td>
+          <td><div class="table-cell-clamp" style="font-weight:500;color:#31343a;">{{ t.input or '—' }}</div></td>
+          <td><div class="table-cell-clamp">{{ t.output or '—' }}</div></td>
+          <td><span class="badge badge-teal">{{ t.agent_version or 'v1' }}</span></td>
+          <td>{{ t.latency_ms|int if t.latency_ms else '—' }} {% if t.latency_ms %}ms{% endif %}</td>
+          <td>{{ t.token_count or '—' }}</td>
+          <td>
+            <span class="badge {{ 'badge-green' if t.status == 'success' else 'badge-red' }}">
+              {{ 'Success' if t.status == 'success' else 'Error' }}
+            </span>
+          </td>
+          <td style="font-size:11px;color:#8a93a5;">{{ t.timestamp[:16].replace('T',' ') if t.timestamp else '—' }}</td>
+        </tr>
 
-  <!-- Detail panel -->
-  <div class="detail-panel">
-    <div class="detail-header">
-      <p class="detail-title">Trace Detail</p>
-      <p style="font-size:11px;color:#6a7384;margin:2px 0 0;" id="detailHint">Select a row to inspect.</p>
-    </div>
-    <div class="detail-body">
-      <div class="detail-grid">
-        <div class="detail-item">
-          <div class="detail-label">Trace ID</div>
-          <div class="detail-value mono-text" id="dId" style="font-size:10.5px;">—</div>
-        </div>
-        <div class="detail-item">
-          <div class="detail-label">Status</div>
-          <div class="detail-value" id="dStatus">—</div>
-        </div>
-        <div class="detail-item">
-          <div class="detail-label">Latency</div>
-          <div class="detail-value" id="dLatency">—</div>
-        </div>
-        <div class="detail-item">
-          <div class="detail-label">Tokens</div>
-          <div class="detail-value" id="dTokens">—</div>
-        </div>
-        <div class="detail-item">
-          <div class="detail-label">Version</div>
-          <div class="detail-value" id="dVersion">—</div>
-        </div>
-        <div class="detail-item">
-          <div class="detail-label">Timestamp</div>
-          <div class="detail-value" id="dTime" style="font-size:10.5px;">—</div>
-        </div>
-      </div>
-      <div class="detail-block">
-        <div class="detail-label">Input</div>
-        <div class="detail-text" id="dInput">—</div>
-      </div>
-      <div class="detail-block">
-        <div class="detail-label">Output</div>
-        <div class="detail-text" id="dOutput">—</div>
-      </div>
-    </div>
+        <!-- Detail row (hidden by default) -->
+        <tr class="trace-detail-row" data-detail-for="{{ t.id }}">
+          <td colspan="8" class="trace-detail-cell">
+            <div class="trace-detail-content">
+              
+              <!-- Metadata grid -->
+              <div class="detail-grid">
+                <div class="detail-item">
+                  <div class="detail-label">Trace ID</div>
+                  <div class="detail-value mono-text" style="font-size:11px;word-break:break-all;">
+                    {{ t.id }}
+                  </div>
+                </div>
+                <div class="detail-item">
+                  <div class="detail-label">Agent Version</div>
+                  <div class="detail-value">{{ t.agent_version or 'v1' }}</div>
+                </div>
+                <div class="detail-item">
+                  <div class="detail-label">Status</div>
+                  <div class="detail-value">
+                    <span class="badge {{ 'badge-green' if t.status == 'success' else 'badge-red' }}">
+                      {{ 'Success' if t.status == 'success' else 'Error' }}
+                    </span>
+                  </div>
+                </div>
+                <div class="detail-item">
+                  <div class="detail-label">Latency</div>
+                  <div class="detail-value">
+                    {{ t.latency_ms|int if t.latency_ms else '—' }} {% if t.latency_ms %}ms{% endif %}
+                  </div>
+                </div>
+                <div class="detail-item">
+                  <div class="detail-label">Tokens</div>
+                  <div class="detail-value">{{ t.token_count or '—' }}</div>
+                </div>
+                <div class="detail-item">
+                  <div class="detail-label">Timestamp</div>
+                  <div class="detail-value" style="font-size:11px;">
+                    {{ t.timestamp[:19].replace('T',' ') if t.timestamp else '—' }}
+                  </div>
+                </div>
+              </div>
+
+              <!-- Input/Output grid -->
+              <div class="detail-io-grid">
+                <div class="detail-block">
+                  <div class="detail-label">Input</div>
+                  <div class="detail-text">{{ t.input or '—' }}</div>
+                </div>
+                <div class="detail-block">
+                  <div class="detail-label">Output</div>
+                  <div class="detail-text">{{ t.output or '—' }}</div>
+                </div>
+              </div>
+
+            </div>
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="8" style="text-align:center;padding:32px;color:#8a93a5;font-size:12px;">
+            No traces yet. Chat with the agent to generate traces.
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
   </div>
 </div>
 
 <script>
-  // ── Row click → detail panel ──────────────────────────────────────────────
-  const rows = Array.from(document.querySelectorAll('.trace-row'));
-  rows.forEach((row, i) => {
-    row.addEventListener('click', () => {
-      rows.forEach(r => r.classList.remove('is-active'));
-      row.classList.add('is-active');
-      loadDetail(row.dataset.traceId);
-    });
-    if (i === 0) { row.classList.add('is-active'); loadDetail(row.dataset.traceId); }
-  });
+  // ── Row click → expand/collapse inline detail ──────────────────────────────
+  document.querySelectorAll('.trace-row').forEach(row => {
+    row.addEventListener('click', (e) => {
+      // Don't expand if clicking checkbox
+      if (e.target.type === 'checkbox' || e.target.closest('.col-check')) {
+        return;
+      }
 
-  async function loadDetail(traceId) {
-    document.getElementById('detailHint').textContent = 'Loading…';
-    try {
-      const r = await fetch(`/api/traces/${traceId}`);
-      const d = await r.json();
-      document.getElementById('detailHint').textContent = 'Trace details';
-      document.getElementById('dId').textContent      = d.id || traceId;
-      document.getElementById('dStatus').textContent  = d.status === 'success' ? 'Success' : 'Error';
-      document.getElementById('dLatency').textContent = d.latency_ms != null ? `${Math.round(d.latency_ms)} ms` : '—';
-      document.getElementById('dTokens').textContent  = d.token_count ?? '—';
-      document.getElementById('dVersion').textContent = d.agent_version || '—';
-      document.getElementById('dTime').textContent    = d.timestamp ? d.timestamp.replace('T',' ').slice(0,19) : '—';
-      document.getElementById('dInput').textContent   = d.input  || '—';
-      document.getElementById('dOutput').textContent  = d.output || '—';
-    } catch {
-      document.getElementById('detailHint').textContent = 'Failed to load.';
-    }
-  }
+      const traceId = row.dataset.traceId;
+      const detailRow = document.querySelector(`tr.trace-detail-row[data-detail-for="${traceId}"]`);
+      
+      if (!detailRow) return;
+
+      // Toggle expanded state
+      const isExpanded = row.classList.contains('expanded');
+      
+      if (isExpanded) {
+        // Collapse
+        row.classList.remove('expanded');
+        detailRow.classList.remove('visible');
+      } else {
+        // Collapse any other open rows first
+        document.querySelectorAll('.trace-row.expanded').forEach(r => {
+          r.classList.remove('expanded');
+        });
+        document.querySelectorAll('.trace-detail-row.visible').forEach(d => {
+          d.classList.remove('visible');
+        });
+        
+        // Expand this row
+        row.classList.add('expanded');
+        detailRow.classList.add('visible');
+      }
+    });
+  });
 
   // ── Checkbox selection ────────────────────────────────────────────────────
   const checkAll    = document.getElementById('checkAll');
@@ -301,12 +440,38 @@
     updateBulkBar();
   });
 
+  // ── Dataset mode toggle (existing ↔ new) ─────────────────────────────────
+  const dsExistingWrap = document.getElementById('dsExistingWrap');
+  const dsNewWrap      = document.getElementById('dsNewWrap');
+
+  document.getElementById('btnSwitchNew').addEventListener('click', () => {
+    dsExistingWrap.style.display = 'none';
+    dsNewWrap.style.display      = 'flex';
+    document.getElementById('newDatasetName').focus();
+  });
+
+  document.getElementById('btnSwitchExisting').addEventListener('click', () => {
+    dsNewWrap.style.display      = 'none';
+    dsExistingWrap.style.display = 'flex';
+    bulkStatus.textContent = '';
+  });
+
+  function getDatasetName() {
+    const isNew = dsNewWrap.style.display !== 'none';
+    if (isNew) {
+      return document.getElementById('newDatasetName').value.trim();
+    }
+    return document.getElementById('bulkDatasetSelect').value;
+  }
+
   // ── Bulk add to dataset ───────────────────────────────────────────────────
   document.getElementById('btnBulkAdd').addEventListener('click', async () => {
     const ids         = getChecked();
-    const datasetName = document.getElementById('bulkDatasetSelect').value;
+    const datasetName = getDatasetName();
     const btn         = document.getElementById('btnBulkAdd');
-    if (!ids.length || !datasetName) return;
+
+    if (!ids.length) { bulkStatus.textContent = 'Select at least one trace.'; return; }
+    if (!datasetName) { bulkStatus.textContent = 'Enter a dataset name.'; return; }
 
     btn.disabled = true;
     btn.textContent = 'Adding…';
@@ -324,6 +489,20 @@
         document.querySelectorAll('.row-check').forEach(cb => { cb.checked = false; });
         checkAll.checked = false;
         updateBulkBar();
+        // If this was a newly created dataset, add it to the existing select
+        const sel = document.getElementById('bulkDatasetSelect');
+        const exists = Array.from(sel.options).some(o => o.value === datasetName);
+        if (!exists && d.dataset_name) {
+          const opt = document.createElement('option');
+          opt.value = d.dataset_name;
+          opt.textContent = d.dataset_name;
+          sel.appendChild(opt);
+          sel.value = d.dataset_name;
+        }
+        // Reset to existing mode
+        dsNewWrap.style.display      = 'none';
+        dsExistingWrap.style.display = 'flex';
+        document.getElementById('newDatasetName').value = '';
       } else {
         bulkStatus.textContent = d.detail || 'Failed.';
       }

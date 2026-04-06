@@ -20,6 +20,7 @@
     gap: 8px;
     flex-wrap: wrap;
     margin-bottom: 16px;
+    margin-top: 12px;
   }
 
   /* Detail table */
@@ -80,8 +81,13 @@
     vertical-align: middle;
   }
 
+  .detail-table tbody tr {
+    cursor: pointer;
+    transition: background 0.15s ease;
+  }
+
   .detail-table tbody tr:hover {
-    background: rgba(33,129,136,0.025);
+    background: rgba(33,129,136,0.04);
   }
 
   .cell-clamp {
@@ -137,16 +143,23 @@
   /* Summary cards at top */
   .summary-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-    gap: 10px;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 12px;
     margin-bottom: 18px;
+    width: 100%;
+  }
+
+  @media (max-width: 768px) {
+    .summary-grid {
+      grid-template-columns: 1fr;
+    }
   }
 
   .summary-card {
     background: white;
     border: 1px solid var(--border);
     border-radius: 10px;
-    padding: 12px 14px;
+    padding: 14px 16px;
     box-shadow: var(--shadow-sm);
   }
 
@@ -173,30 +186,161 @@
     margin-top: 4px;
   }
 
-  /* Expandable row detail */
-  .expand-btn {
-    appearance: none;
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    background: white;
-    color: #5c6678;
-    font-size: 11px;
-    padding: 3px 8px;
-    cursor: pointer;
-    white-space: nowrap;
+  /* Side overlay */
+  .detail-overlay-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(2px);
+    z-index: 9998;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
   }
-  .expand-btn:hover { background: #f1f3f6; }
+  .detail-overlay-backdrop.visible {
+    opacity: 1;
+    visibility: visible;
+  }
 
-  .expanded-row td {
-    background: #f8fafc;
-    padding: 10px 14px;
+  .detail-drawer {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 600px;
+    max-width: 90vw;
+    background: white;
+    box-shadow: -4px 0 24px rgba(0, 0, 0, 0.15);
+    z-index: 9999;
+    transform: translateX(100%);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
   }
-  .expanded-content {
-    font-size: 11.5px;
+  .detail-drawer.visible {
+    transform: translateX(0);
+  }
+
+  .drawer-header {
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--border);
+    background: linear-gradient(180deg, #fafbfc 0%, white 100%);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+  }
+  .drawer-title {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 700;
+    color: #252525;
+  }
+
+  .btn-close-drawer {
+    appearance: none;
+    border: none;
+    background: transparent;
+    color: #6a7384;
+    font-size: 24px;
+    line-height: 1;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 6px;
+    transition: background 0.15s, color 0.15s;
+  }
+  .btn-close-drawer:hover {
+    background: rgba(0, 0, 0, 0.06);
+    color: #252525;
+  }
+
+  .drawer-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px;
+  }
+
+  .io-section {
+    margin-bottom: 20px;
+    padding: 14px 16px;
+    background: #fafbfc;
+    border-radius: 10px;
+    border: 1px solid rgba(37,37,37,0.08);
+  }
+  .io-label {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #8a93a5;
+    margin-bottom: 8px;
+  }
+  .io-text {
+    color: #252525;
+    line-height: 1.6;
+    font-size: 12px;
+  }
+  .eval-section {
+    margin-bottom: 18px;
+    padding: 14px 16px;
+    background: white;
+    border-radius: 10px;
+    border: 1px solid rgba(37,37,37,0.08);
+  }
+  .eval-header {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--primary-strong);
+    margin-bottom: 12px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid rgba(37,37,37,0.08);
+  }
+  .model-result {
+    padding: 8px 0;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    border-bottom: 1px solid rgba(37,37,37,0.04);
+  }
+  .model-result:last-child {
+    border-bottom: none;
+  }
+  .model-name {
+    font-size: 11px;
+    font-weight: 600;
+    color: #515a69;
+    min-width: 110px;
+  }
+  .result-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 10px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+  }
+  .result-badge.pass {
+    background: #d4f0dc;
+    color: #1a6b36;
+  }
+  .result-badge.fail {
+    background: #fde8e8;
+    color: #9b1c1c;
+  }
+  .result-reason {
+    font-size: 11px;
+    color: #5c6678;
+    margin-top: 6px;
+    font-style: italic;
     line-height: 1.5;
-    color: #3d4656;
   }
-  .expanded-content strong { color: #252525; font-weight: 600; }
 </style>
 
 <a href="/evaluations" class="back-link">
@@ -266,7 +410,7 @@
   <div style="padding:12px 16px 10px;border-bottom:1px solid var(--border);background:white;">
     <p style="margin:0;font-size:13px;font-weight:700;color:#252525;">Results by Example</p>
     <p style="margin:2px 0 0;font-size:11px;color:#6a7384;">
-      Click a row to expand full input/output. Each model column shows PASS/FAIL per evaluator.
+      Click a row to view full details. Each model column shows PASS/FAIL per evaluator.
     </p>
   </div>
   <div class="detail-table-wrap">
@@ -274,9 +418,8 @@
       <thead>
         <!-- Row 1: Input | Output | [evaluator group headers spanning model cols] -->
         <tr>
-          <th rowspan="2" style="width:220px;">Input</th>
-          <th rowspan="2" style="width:240px;">Output</th>
-          <th rowspan="2" style="width:60px;"></th>
+          <th rowspan="2" style="width:240px;">Input</th>
+          <th rowspan="2" style="width:260px;">Output</th>
           {% set displayed_evals = evaluator_names if evaluator_names else [] %}
           {% if not displayed_evals %}
             {# Collect from scores_by_model #}
@@ -313,16 +456,15 @@
         {% set output_text = ex.outputs.get('answer',  ex.outputs.get('output','—')) %}
         {% set ex_scores   = scores_by_model.get(ex.id, {}) %}
 
-        <!-- Main row -->
-        <tr class="detail-main-row" data-ex-id="{{ ex.id }}">
+        <tr class="detail-main-row" 
+            data-ex-id="{{ ex.id }}"
+            data-input="{{ input_text | escape }}"
+            data-output="{{ output_text | escape }}">
           <td>
             <div class="cell-clamp" style="font-weight:500;color:#31343a;">{{ input_text }}</div>
           </td>
           <td>
             <div class="cell-clamp">{{ output_text }}</div>
-          </td>
-          <td>
-            <button class="expand-btn" data-ex-id="{{ ex.id }}">Expand</button>
           </td>
           {% for ev_name in displayed_evals %}
             {% for model in models %}
@@ -341,48 +483,123 @@
             {% endfor %}
           {% endfor %}
         </tr>
-
-        <!-- Expanded row (hidden by default) -->
-        <tr class="expanded-row" id="expand-{{ ex.id }}" style="display:none;">
-          <td colspan="{{ 3 + (displayed_evals|length * models|length) }}">
-            <div class="expanded-content">
-              <strong>Input:</strong> {{ input_text }}<br><br>
-              <strong>Output:</strong> {{ output_text }}<br><br>
-              {% for ev_name in displayed_evals %}
-                <strong>{{ ev_name }}:</strong><br>
-                {% for model in models %}
-                  {% set sv = ex_scores.get(model, {}).get(ev_name, none) %}
-                  &nbsp;&nbsp;<em>{{ model }}</em>:
-                  {% if sv is not none %}
-                    {{ 'PASS' if sv.score >= 0.5 else 'FAIL' }}
-                    {% if sv.comment %} — {{ sv.comment }}{% endif %}
-                  {% else %}
-                    No data
-                  {% endif %}<br>
-                {% endfor %}
-                <br>
-              {% endfor %}
-            </div>
-          </td>
-        </tr>
         {% endfor %}
       </tbody>
     </table>
   </div>
 </div>
+
+<!-- Detail overlay -->
+<div class="detail-overlay-backdrop" id="detailBackdrop"></div>
+<div class="detail-drawer" id="detailDrawer">
+  <div class="drawer-header">
+    <h2 class="drawer-title">Example Detail</h2>
+    <button class="btn-close-drawer" id="btnCloseDetail">&times;</button>
+  </div>
+  <div class="drawer-body" id="drawerBody"></div>
+</div>
 {% endif %}
 
 <script>
-  // Expand / collapse row
-  document.querySelectorAll('.expand-btn').forEach(btn => {
-    btn.addEventListener('click', e => {
-      e.stopPropagation();
-      const exId   = btn.dataset.exId;
-      const expRow = document.getElementById(`expand-${exId}`);
-      const isOpen = expRow.style.display !== 'none';
-      expRow.style.display = isOpen ? 'none' : 'table-row';
-      btn.textContent = isOpen ? 'Expand' : 'Collapse';
+  const drawer = document.getElementById('detailDrawer');
+  const backdrop = document.getElementById('detailBackdrop');
+  const btnClose = document.getElementById('btnCloseDetail');
+  const drawerBody = document.getElementById('drawerBody');
+
+  {% set displayed_evals_for_js = evaluator_names if evaluator_names else [] %}
+  {% if not displayed_evals_for_js %}
+    {% set ns = namespace(ev_set=[]) %}
+    {% for ex in examples %}
+      {% for model, ev_map in scores_by_model.get(ex.id, {}).items() %}
+        {% for ev_name in ev_map %}
+          {% if ev_name not in ns.ev_set %}
+            {% set _ = ns.ev_set.append(ev_name) %}
+          {% endif %}
+        {% endfor %}
+      {% endfor %}
+    {% endfor %}
+    {% set displayed_evals_for_js = ns.ev_set %}
+  {% endif %}
+
+  const displayedEvals = {{ displayed_evals_for_js | tojson }};
+  const models = {{ models | tojson }};
+  const scoresByModel = {{ scores_by_model | tojson }};
+
+  function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
+  function openDetailDrawer(exId, inputText, outputText) {
+    const exScores = scoresByModel[exId] || {};
+
+    let html = `
+      <div class="io-section">
+        <div class="io-label">Input</div>
+        <div class="io-text">${escapeHtml(inputText)}</div>
+      </div>
+      
+      <div class="io-section">
+        <div class="io-label">Output</div>
+        <div class="io-text">${escapeHtml(outputText)}</div>
+      </div>
+    `;
+
+    displayedEvals.forEach(evName => {
+      html += `<div class="eval-section">
+        <div class="eval-header">${escapeHtml(evName.replace(/_/g, ' '))}</div>`;
+      
+      models.forEach(model => {
+        const sv = exScores[model]?.[evName];
+        html += `<div class="model-result">
+          <span class="model-name">${escapeHtml(model)}</span>
+          <div style="flex:1;">`;
+        
+        if (sv) {
+          const status = sv.score >= 0.5 ? 'pass' : 'fail';
+          const label = sv.score >= 0.5 ? 'PASS' : 'FAIL';
+          html += `<span class="result-badge ${status}">${label}</span>`;
+          if (sv.comment) {
+            html += `<div class="result-reason">${escapeHtml(sv.comment)}</div>`;
+          }
+        } else {
+          html += `<span style="font-size:11px;color:#bcc3ce;">No data</span>`;
+        }
+        
+        html += `</div></div>`;
+      });
+      
+      html += `</div>`;
     });
+
+    drawerBody.innerHTML = html;
+    backdrop.classList.add('visible');
+    drawer.classList.add('visible');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeDetailDrawer() {
+    backdrop.classList.remove('visible');
+    drawer.classList.remove('visible');
+    document.body.style.overflow = '';
+  }
+
+  document.querySelectorAll('.detail-main-row').forEach(row => {
+    row.addEventListener('click', () => {
+      const exId = row.dataset.exId;
+      const inputText = row.getAttribute('data-input');
+      const outputText = row.getAttribute('data-output');
+      openDetailDrawer(exId, inputText, outputText);
+    });
+  });
+
+  btnClose.addEventListener('click', closeDetailDrawer);
+  backdrop.addEventListener('click', closeDetailDrawer);
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && drawer.classList.contains('visible')) {
+      closeDetailDrawer();
+    }
   });
 </script>
 {% endblock %}

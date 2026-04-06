@@ -141,6 +141,7 @@ async def evaluations_page(request: Request):
         "evaluations":     evals_enriched,
         "evaluator_defs":  evaluator_defs,
         "datasets":        datasets,
+        "eval_models":     EVAL_MODELS,
         "active":          "evaluations",
     })
 

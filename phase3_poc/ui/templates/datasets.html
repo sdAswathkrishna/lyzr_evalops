@@ -2,28 +2,175 @@
 {% block title %}Datasets{% endblock %}
 {% block content %}
 <style>
-  .ds-layout {
-    display: grid;
-    grid-template-columns: 300px 1fr;
-    gap: 14px;
-    align-items: start;
+  .ds-container {
+    max-width: 100%;
   }
 
-  .ds-list-panel {
-    position: sticky;
-    top: 14px;
+  .ds-table-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border);
+    overflow: hidden;
   }
 
-  /* Examples table */
-  .examples-header {
+  .ds-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    background: linear-gradient(180deg, #fafbfc 0%, #ffffff 100%);
+  }
+
+  .ds-header h2 {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 700;
+    color: #252525;
+  }
+
+  .ds-header p {
+    margin: 4px 0 0;
+    font-size: 12px;
+    color: #6a7384;
+  }
+
+  .ds-main-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .ds-main-table thead th {
+    text-align: left;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #6a7384;
+    padding: 12px 20px;
+    border-bottom: 1px solid var(--border);
+    background: #fafbfc;
+  }
+
+  .ds-main-table tbody tr {
+    border-bottom: 1px solid #f0f2f5;
+    transition: background 0.15s ease;
+  }
+
+  .ds-main-table tbody tr:hover {
+    background: rgba(33,129,136,0.03);
+  }
+
+  .ds-main-table tbody tr.expanded {
+    background: rgba(33,129,136,0.06);
+  }
+
+  .ds-main-row {
+    cursor: pointer;
+  }
+
+  .ds-main-row td {
+    padding: 14px 20px;
+    font-size: 13px;
+  }
+
+  .ds-chevron {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    transition: transform 0.2s ease;
+  }
+
+  .ds-chevron svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  tr.expanded .ds-chevron {
+    transform: rotate(90deg);
+  }
+
+  .ds-name-cell {
+    font-weight: 600;
+    color: #252525;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .ds-detail-row {
+    display: none;
+  }
+
+  .ds-detail-row.visible {
+    display: table-row;
+  }
+
+  .ds-detail-cell {
+    padding: 0 !important;
+    background: #fafbfc;
+    border-top: 1px solid var(--border);
+  }
+
+  .ds-detail-content {
+    padding: 20px;
+    animation: slideDown 0.2s ease;
+  }
+
+  @keyframes slideDown {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .ds-detail-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 10px;
-    padding: 12px 16px;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
     border-bottom: 1px solid var(--border);
+  }
+
+  .ds-detail-header h3 {
+    margin: 0;
+    font-size: 13px;
+    font-weight: 700;
+    color: #252525;
+  }
+
+  .ds-meta-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+
+  .ds-meta-item {
+    padding: 12px;
     background: white;
-    flex-wrap: wrap;
+    border-radius: 8px;
+    border: 1px solid #e8ebef;
+  }
+
+  .ds-meta-item label {
+    display: block;
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #8a93a5;
+    margin-bottom: 4px;
+  }
+
+  .ds-meta-item .value {
+    font-size: 13px;
+    font-weight: 600;
+    color: #252525;
   }
 
   .btn-run-eval {
@@ -35,7 +182,7 @@
     font: inherit;
     font-size: 12px;
     font-weight: 600;
-    padding: 7px 16px;
+    padding: 8px 16px;
     cursor: pointer;
     box-shadow: var(--shadow-sm);
     transition: transform 0.15s ease, opacity 0.15s ease;
@@ -43,12 +190,74 @@
     align-items: center;
     gap: 6px;
   }
-  .btn-run-eval:hover:not(:disabled) { transform: translateY(-1px); }
+  .btn-run-eval:hover:not(:disabled) { 
+    transform: translateY(-1px); 
+    box-shadow: 0 4px 12px rgba(33,129,136,0.2);
+  }
   .btn-run-eval:disabled { opacity: 0.5; cursor: not-allowed; }
 
-  .ds-row { cursor: pointer; }
-  .ds-row.is-active { background: rgba(33,129,136,0.06) !important; }
-  .ds-row:hover { background: rgba(33,129,136,0.03); }
+  .examples-section {
+    margin-top: 16px;
+  }
+
+  .examples-section h4 {
+    margin: 0 0 12px;
+    font-size: 12px;
+    font-weight: 700;
+    color: #252525;
+  }
+
+  .examples-table-wrap {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    max-height: 400px;
+    overflow-y: auto;
+  }
+
+  .examples-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+  }
+
+  .examples-table thead th {
+    position: sticky;
+    top: 0;
+    background: #fafbfc;
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #6a7384;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border);
+    text-align: left;
+    z-index: 1;
+  }
+
+  .examples-table tbody tr {
+    border-bottom: 1px solid #f0f2f5;
+  }
+
+  .examples-table tbody tr:hover {
+    background: rgba(33,129,136,0.02);
+  }
+
+  .examples-table tbody td {
+    padding: 10px 12px;
+    vertical-align: top;
+  }
+
+  .table-cell-clamp {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    line-height: 1.4;
+  }
 
   .empty-state {
     text-align: center;
@@ -60,10 +269,10 @@
 
   .eval-status-msg {
     display: none;
-    padding: 10px 14px;
+    padding: 12px 16px;
     font-size: 12px;
     border-radius: 8px;
-    margin: 0 16px 12px;
+    margin-bottom: 16px;
   }
   .eval-status-msg.visible { display: block; }
   .eval-status-msg.success { background: var(--success-bg); color: var(--success-text); }
@@ -73,167 +282,198 @@
 
 <section class="hero-panel">
   <h1 class="page-title">Datasets</h1>
-  <p class="page-subtitle">Evaluation datasets built from production traces. Select a dataset to inspect examples and run evaluations.</p>
+  <p class="page-subtitle">Evaluation datasets built from production traces. Click on a dataset to view details and run evaluations.</p>
 </section>
 
-<div class="ds-layout">
-
-  <!-- Left: dataset list -->
-  <div class="ds-list-panel">
-    <div class="content-card">
-      <div style="padding:12px 16px 10px;border-bottom:1px solid var(--border);background:white;">
-        <p style="margin:0;font-size:13px;font-weight:700;color:#252525;">All Datasets</p>
-        <p style="margin:2px 0 0;font-size:11px;color:#6a7384;">{{ datasets|length }} dataset{{ 's' if datasets|length != 1 else '' }}</p>
-      </div>
-      <div class="table-shell">
-        <table class="table-clean" style="table-layout:fixed;">
-          <colgroup>
-            <col style="width:160px">
-            <col style="width:60px">
-            <col style="width:80px">
-          </colgroup>
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th style="text-align:center;">Examples</th>
-              <th>Created</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for ds in datasets %}
-            <tr class="ds-row {{ 'is-active' if loop.first }}" data-ds-id="{{ ds.id }}" data-ds-name="{{ ds.name }}">
-              <td style="font-weight:600;color:#252525;">{{ ds.name }}</td>
-              <td style="text-align:center;">
-                <span class="badge badge-teal">{{ ds.example_count }}</span>
-              </td>
-              <td style="font-size:11px;color:#8a93a5;">{{ ds.created_at[:10] if ds.created_at else '—' }}</td>
-            </tr>
-            {% else %}
-            <tr><td colspan="3" class="empty-state">No datasets yet.<br>Add traces from the Traces tab.</td></tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
+<div class="ds-container">
+  <div class="ds-table-card">
+    <div class="ds-header">
+      <h2>All Datasets</h2>
+      <p>{{ datasets|length }} dataset{{ 's' if datasets|length != 1 else '' }}</p>
     </div>
-  </div>
 
-  <!-- Right: examples + run eval -->
-  <div>
-    <div class="content-card" id="examplesCard">
-      <div class="examples-header">
-        <div>
-          <p style="margin:0;font-size:13px;font-weight:700;color:#252525;" id="dsDetailTitle">
-            {% if datasets %}{{ datasets[0].name }}{% else %}No dataset selected{% endif %}
-          </p>
-          <p style="margin:2px 0 0;font-size:11px;color:#6a7384;" id="dsDetailSub">
-            {% if datasets %}{{ datasets[0].example_count }} examples{% else %}Select a dataset from the left{% endif %}
-          </p>
-        </div>
-        {% if datasets %}
-        <button class="btn-run-eval" id="btnRunEval" data-ds-id="{{ datasets[0].id }}">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3l14 9-14 9V3z"/>
-          </svg>
-          Run Evaluation
-        </button>
-        {% endif %}
-      </div>
+    <table class="ds-main-table">
+      <thead>
+        <tr>
+          <th style="width: 50%;">Name</th>
+          <th style="width: 20%; text-align: center;">Examples</th>
+          <th style="width: 20%;">Created</th>
+          <th style="width: 10%;"></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for ds in datasets %}
+        <!-- Main dataset row -->
+        <tr class="ds-main-row" data-ds-id="{{ ds.id }}">
+          <td>
+            <div class="ds-name-cell">
+              <span class="ds-chevron">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M9 18l6-6-6-6"/>
+                </svg>
+              </span>
+              {{ ds.name }}
+            </div>
+          </td>
+          <td style="text-align: center;">
+            <span class="badge badge-teal">{{ ds.example_count }}</span>
+          </td>
+          <td style="font-size: 12px; color: #8a93a5;">
+            {{ ds.created_at[:10] if ds.created_at else '—' }}
+          </td>
+          <td></td>
+        </tr>
 
-      <div id="evalStatusMsg" class="eval-status-msg"></div>
+        <!-- Detail row (hidden by default) -->
+        <tr class="ds-detail-row" data-detail-for="{{ ds.id }}">
+          <td colspan="4" class="ds-detail-cell">
+            <div class="ds-detail-content">
+              
+              <!-- Dataset metadata -->
+              <div class="ds-meta-grid">
+                <div class="ds-meta-item">
+                  <label>Dataset ID</label>
+                  <div class="value mono-text" style="font-size: 11px; word-break: break-all;">{{ ds.id }}</div>
+                </div>
+                <div class="ds-meta-item">
+                  <label>Total Examples</label>
+                  <div class="value">{{ ds.example_count }}</div>
+                </div>
+                <div class="ds-meta-item">
+                  <label>Created</label>
+                  <div class="value">{{ ds.created_at[:19].replace('T', ' ') if ds.created_at else '—' }}</div>
+                </div>
+                <div class="ds-meta-item">
+                  <label>Description</label>
+                  <div class="value" style="font-size: 12px; font-weight: 500;">
+                    {{ ds.description if ds.description else 'No description' }}
+                  </div>
+                </div>
+              </div>
 
-      <div class="table-shell" id="examplesTableWrap">
-        <table class="table-clean" style="table-layout:fixed;" id="examplesTable">
-          <colgroup>
-            <col style="width:220px">
-            <col style="width:280px">
-            <col style="width:120px">
-            <col style="width:100px">
-          </colgroup>
-          <thead>
-            <tr>
-              <th>Input</th>
-              <th>Reference Output</th>
-              <th>Source Trace</th>
-              <th>Added</th>
-            </tr>
-          </thead>
-          <tbody id="examplesTbody">
-            {% if datasets and datasets[0].examples %}
-              {% for ex in datasets[0].examples %}
-              <tr>
-                <td><div class="table-cell-clamp" style="font-weight:500;color:#31343a;">{{ ex.inputs.get('question', ex.inputs.get('input','—')) }}</div></td>
-                <td><div class="table-cell-clamp">{{ ex.outputs.get('answer', ex.outputs.get('output','—')) }}</div></td>
-                <td><span class="mono-text" style="font-size:10.5px;color:#8a93a5;">{{ ex.source_trace_id[:12] if ex.source_trace_id else '—' }}…</span></td>
-                <td style="font-size:11px;color:#8a93a5;">{{ ex.created_at[:10] if ex.created_at else '—' }}</td>
-              </tr>
-              {% endfor %}
-            {% else %}
-              <tr><td colspan="4" class="empty-state">No examples in this dataset.</td></tr>
-            {% endif %}
-          </tbody>
-        </table>
-      </div>
-    </div>
+              <!-- Evaluation action + status -->
+              <div class="ds-detail-header">
+                <h3>Examples in this dataset</h3>
+                <button class="btn-run-eval" data-ds-id="{{ ds.id }}">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M5 3l14 9-14 9V3z"/>
+                  </svg>
+                  Run Evaluation
+                </button>
+              </div>
+
+              <div class="eval-status-msg" data-eval-status-for="{{ ds.id }}"></div>
+
+              <!-- Examples table -->
+              <div class="examples-section">
+                {% if ds.examples %}
+                <div class="examples-table-wrap">
+                  <table class="examples-table">
+                    <thead>
+                      <tr>
+                        <th style="width: 35%;">Input</th>
+                        <th style="width: 40%;">Reference Output</th>
+                        <th style="width: 15%;">Source Trace</th>
+                        <th style="width: 10%;">Added</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {% for ex in ds.examples %}
+                      <tr>
+                        <td>
+                          <div class="table-cell-clamp" style="font-weight: 500; color: #31343a;">
+                            {{ ex.inputs.get('question', ex.inputs.get('input', '—')) }}
+                          </div>
+                        </td>
+                        <td>
+                          <div class="table-cell-clamp" style="color: #6a7384;">
+                            {{ ex.outputs.get('answer', ex.outputs.get('output', '—')) }}
+                          </div>
+                        </td>
+                        <td>
+                          <span class="mono-text" style="font-size: 10px; color: #8a93a5;">
+                            {{ ex.source_trace_id[:12] if ex.source_trace_id else '—' }}…
+                          </span>
+                        </td>
+                        <td style="font-size: 11px; color: #8a93a5;">
+                          {{ ex.created_at[:10] if ex.created_at else '—' }}
+                        </td>
+                      </tr>
+                      {% endfor %}
+                    </tbody>
+                  </table>
+                </div>
+                {% else %}
+                <div class="empty-state">No examples in this dataset.</div>
+                {% endif %}
+              </div>
+
+            </div>
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="4" class="empty-state">
+            No datasets yet.<br>
+            Add traces from the Traces tab to create your first dataset.
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
   </div>
 </div>
 
 <script>
-  const datasets = {{ datasets | tojson }};
+  // Toggle expand/collapse for dataset rows
+  document.querySelectorAll('.ds-main-row').forEach(row => {
+    row.addEventListener('click', (e) => {
+      const dsId = row.dataset.dsId;
+      const detailRow = document.querySelector(`tr.ds-detail-row[data-detail-for="${dsId}"]`);
+      
+      if (!detailRow) return;
 
-  // Dataset list click
-  document.querySelectorAll('.ds-row').forEach(row => {
-    row.addEventListener('click', () => {
-      document.querySelectorAll('.ds-row').forEach(r => r.classList.remove('is-active'));
-      row.classList.add('is-active');
-      const dsId   = row.dataset.dsId;
-      const dsName = row.dataset.dsName;
-      const ds     = datasets.find(d => d.id === dsId);
-      if (!ds) return;
-
-      document.getElementById('dsDetailTitle').textContent = ds.name;
-      document.getElementById('dsDetailSub').textContent   = `${ds.example_count} examples`;
-
-      const btn = document.getElementById('btnRunEval');
-      if (btn) btn.dataset.dsId = dsId;
-
-      renderExamples(ds.examples || []);
-      clearEvalStatus();
+      // Toggle expanded state
+      const isExpanded = row.classList.contains('expanded');
+      
+      if (isExpanded) {
+        // Collapse
+        row.classList.remove('expanded');
+        detailRow.classList.remove('visible');
+      } else {
+        // Collapse any other open rows first
+        document.querySelectorAll('.ds-main-row.expanded').forEach(r => {
+          r.classList.remove('expanded');
+        });
+        document.querySelectorAll('.ds-detail-row.visible').forEach(d => {
+          d.classList.remove('visible');
+        });
+        
+        // Expand this row
+        row.classList.add('expanded');
+        detailRow.classList.add('visible');
+      }
     });
   });
 
-  function renderExamples(examples) {
-    const tbody = document.getElementById('examplesTbody');
-    if (!examples || examples.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="4" class="empty-state">No examples in this dataset.</td></tr>';
-      return;
-    }
-    tbody.innerHTML = examples.map(ex => {
-      const input  = ex.inputs?.question || ex.inputs?.input || '—';
-      const output = ex.outputs?.answer  || ex.outputs?.output || '—';
-      const trace  = ex.source_trace_id ? ex.source_trace_id.slice(0,12) + '…' : '—';
-      const date   = ex.created_at ? ex.created_at.slice(0,10) : '—';
-      return `<tr>
-        <td><div class="table-cell-clamp" style="font-weight:500;color:#31343a;">${esc(input)}</div></td>
-        <td><div class="table-cell-clamp">${esc(output)}</div></td>
-        <td><span class="mono-text" style="font-size:10.5px;color:#8a93a5;">${esc(trace)}</span></td>
-        <td style="font-size:11px;color:#8a93a5;">${esc(date)}</td>
-      </tr>`;
-    }).join('');
-  }
-
-  function esc(s) {
-    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-  }
-
-  // Run evaluation
-  const btnRunEval = document.getElementById('btnRunEval');
-  if (btnRunEval) {
-    btnRunEval.addEventListener('click', async () => {
-      const dsId = btnRunEval.dataset.dsId;
+  // Run evaluation buttons
+  document.querySelectorAll('.btn-run-eval').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+      e.stopPropagation(); // Prevent row collapse
+      
+      const dsId = btn.dataset.dsId;
       if (!dsId) return;
-      btnRunEval.disabled = true;
-      btnRunEval.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 2v4m0 12v4M4.93 4.93l2.83 2.83m8.48 8.48 2.83 2.83M2 12h4m12 0h4M4.93 19.07l2.83-2.83m8.48-8.48 2.83-2.83"/></svg> Running…`;
-      showEvalStatus('Running evaluation across all models — this may take a minute…', 'info');
+
+      const statusMsg = document.querySelector(`[data-eval-status-for="${dsId}"]`);
+      
+      btn.disabled = true;
+      btn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4m0 12v4M4.93 4.93l2.83 2.83m8.48 8.48 2.83 2.83M2 12h4m12 0h4M4.93 19.07l2.83-2.83m8.48-8.48 2.83-2.83"/></svg> Running…`;
+      
+      if (statusMsg) {
+        statusMsg.innerHTML = 'Running evaluation across all models — this may take a minute…';
+        statusMsg.className = 'eval-status-msg visible info';
+      }
+
       try {
         const r = await fetch(`/api/datasets/${dsId}/run-eval`, {
           method: 'POST',
@@ -241,33 +481,30 @@
           body: JSON.stringify({ evaluator_ids: [], models: [] }),
         });
         const d = await r.json();
+        
         if (r.ok) {
-          showEvalStatus(
-            `✓ Evaluation complete — ${d.examples_evaluated} examples × ${d.scores_saved} scores. ` +
-            `<a href="/evaluations/${d.evaluation_id}" style="font-weight:700;color:var(--primary-strong);text-decoration:underline;">View results →</a>`,
-            'success'
-          );
+          if (statusMsg) {
+            statusMsg.innerHTML = 
+              `✓ Evaluation complete — ${d.examples_evaluated} examples × ${d.scores_saved} scores. ` +
+              `<a href="/evaluations/${d.evaluation_id}" style="font-weight:700;color:var(--primary-strong);text-decoration:underline;">View results →</a>`;
+            statusMsg.className = 'eval-status-msg visible success';
+          }
         } else {
-          showEvalStatus(d.detail || 'Evaluation failed.', 'error');
+          if (statusMsg) {
+            statusMsg.innerHTML = d.detail || 'Evaluation failed.';
+            statusMsg.className = 'eval-status-msg visible error';
+          }
         }
-      } catch {
-        showEvalStatus('Network error. Please try again.', 'error');
+      } catch (err) {
+        if (statusMsg) {
+          statusMsg.innerHTML = 'Network error. Please try again.';
+          statusMsg.className = 'eval-status-msg visible error';
+        }
       } finally {
-        btnRunEval.disabled = false;
-        btnRunEval.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3l14 9-14 9V3z"/></svg> Run Evaluation`;
+        btn.disabled = false;
+        btn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 3l14 9-14 9V3z"/></svg> Run Evaluation`;
       }
     });
-  }
-
-  function showEvalStatus(msg, type) {
-    const el = document.getElementById('evalStatusMsg');
-    el.innerHTML = msg;
-    el.className = `eval-status-msg visible ${type}`;
-  }
-
-  function clearEvalStatus() {
-    const el = document.getElementById('evalStatusMsg');
-    el.className = 'eval-status-msg';
-  }
+  });
 </script>
 {% endblock %}

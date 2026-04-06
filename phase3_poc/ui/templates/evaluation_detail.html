@@ -237,7 +237,6 @@
 {% endfor %}
 
 {% set total_scores = all_scores|length %}
-{% set pass_count = all_scores|selectattr('>=', 0.5)|list|length %}
 
 <div class="summary-grid">
   <div class="summary-card">

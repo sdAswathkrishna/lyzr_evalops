@@ -1,81 +1,273 @@
 {% extends "base.html" %}
 {% block title %}Datasets{% endblock %}
 {% block content %}
+<style>
+  .ds-layout {
+    display: grid;
+    grid-template-columns: 300px 1fr;
+    gap: 14px;
+    align-items: start;
+  }
+
+  .ds-list-panel {
+    position: sticky;
+    top: 14px;
+  }
+
+  /* Examples table */
+  .examples-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    background: white;
+    flex-wrap: wrap;
+  }
+
+  .btn-run-eval {
+    appearance: none;
+    border: none;
+    border-radius: 8px;
+    background: linear-gradient(180deg, var(--primary) 0%, var(--primary-strong) 100%);
+    color: white;
+    font: inherit;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 7px 16px;
+    cursor: pointer;
+    box-shadow: var(--shadow-sm);
+    transition: transform 0.15s ease, opacity 0.15s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .btn-run-eval:hover:not(:disabled) { transform: translateY(-1px); }
+  .btn-run-eval:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .ds-row { cursor: pointer; }
+  .ds-row.is-active { background: rgba(33,129,136,0.06) !important; }
+  .ds-row:hover { background: rgba(33,129,136,0.03); }
+
+  .empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: #8a93a5;
+    font-size: 12px;
+    line-height: 1.6;
+  }
+
+  .eval-status-msg {
+    display: none;
+    padding: 10px 14px;
+    font-size: 12px;
+    border-radius: 8px;
+    margin: 0 16px 12px;
+  }
+  .eval-status-msg.visible { display: block; }
+  .eval-status-msg.success { background: var(--success-bg); color: var(--success-text); }
+  .eval-status-msg.error   { background: var(--danger-bg);  color: var(--danger-text); }
+  .eval-status-msg.info    { background: var(--info-bg);    color: var(--info-text); }
+</style>
 
 <section class="hero-panel">
-  <div class="eyebrow">Dataset management</div>
-  <h1 class="page-title">Evaluation Datasets</h1>
-  <p class="page-subtitle">Reference examples used to evaluate agent quality, track regressions, and support release decisions.</p>
+  <h1 class="page-title">Datasets</h1>
+  <p class="page-subtitle">Evaluation datasets built from production traces. Select a dataset to inspect examples and run evaluations.</p>
 </section>
 
-{% if datasets %}
-<section class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 mb-6">
-  {% for ds in datasets %}
-  <div class="metric-card">
-    <div class="flex items-start justify-between gap-3">
-      <div>
-        <p class="text-[17px] font-semibold text-[#252525] mb-1">{{ ds.name }}</p>
-        <p class="text-sm text-[#6a7384]">{{ ds.description }}</p>
+<div class="ds-layout">
+
+  <!-- Left: dataset list -->
+  <div class="ds-list-panel">
+    <div class="content-card">
+      <div style="padding:12px 16px 10px;border-bottom:1px solid var(--border);background:white;">
+        <p style="margin:0;font-size:13px;font-weight:700;color:#252525;">All Datasets</p>
+        <p style="margin:2px 0 0;font-size:11px;color:#6a7384;">{{ datasets|length }} dataset{{ 's' if datasets|length != 1 else '' }}</p>
       </div>
-      <span class="badge badge-teal">Dataset</span>
-    </div>
-    <div class="metric-meta">Created {{ ds.created_at[:10] }}</div>
-  </div>
-  {% endfor %}
-</section>
-
-<section class="content-card mb-6">
-  <div class="card-section border-b border-[var(--border)] flex items-center justify-between">
-    <div>
-      <h2 class="card-title">Dataset Examples</h2>
-      <p class="card-description">{{ datasets[0].name }} currently contains {{ examples|length }} examples.</p>
-    </div>
-    <span class="badge badge-green">{{ examples|length }} rows</span>
-  </div>
-  <div class="divide-y divide-[rgba(37,37,37,0.06)]">
-    {% for ex in examples %}
-    <div class="px-6 py-5 hover:bg-[rgba(33,129,136,0.03)]">
-      <div class="flex items-start gap-4">
-        <div class="w-8 h-8 rounded-full bg-[var(--primary-soft)] text-[var(--primary-strong)] flex items-center justify-center text-xs font-semibold flex-shrink-0">
-          {{ loop.index }}
-        </div>
-        <div class="flex-1 min-w-0">
-          <div class="flex items-center gap-2 flex-wrap mb-2">
-            <div class="text-sm font-semibold text-[#252525]">{{ ex.inputs.get("input", ex.inputs.get("question", "")) }}</div>
-            {% if ex.metadata.get("category") %}
-            <span class="badge badge-blue">{{ ex.metadata.category }}</span>
-            {% endif %}
-            {% if ex.metadata.get("source") == "production_trace" %}
-            <span class="badge badge-yellow">Promoted trace</span>
-            {% endif %}
-          </div>
-          <div class="text-sm text-[#6a7384]">{{ ex.outputs.get("output", ex.outputs.get("answer", ""))[:160] }}{% if ex.outputs.get("output", ex.outputs.get("answer", ""))|length > 160 %}...{% endif %}</div>
-        </div>
-        <div class="flex-shrink-0">
-          {% if ex.outputs %}
-          <span class="badge badge-green">Reference</span>
-          {% else %}
-          <span class="badge badge-red">Missing output</span>
-          {% endif %}
-        </div>
+      <div class="table-shell">
+        <table class="table-clean" style="table-layout:fixed;">
+          <colgroup>
+            <col style="width:160px">
+            <col style="width:60px">
+            <col style="width:80px">
+          </colgroup>
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th style="text-align:center;">Examples</th>
+              <th>Created</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for ds in datasets %}
+            <tr class="ds-row {{ 'is-active' if loop.first }}" data-ds-id="{{ ds.id }}" data-ds-name="{{ ds.name }}">
+              <td style="font-weight:600;color:#252525;">{{ ds.name }}</td>
+              <td style="text-align:center;">
+                <span class="badge badge-teal">{{ ds.example_count }}</span>
+              </td>
+              <td style="font-size:11px;color:#8a93a5;">{{ ds.created_at[:10] if ds.created_at else '—' }}</td>
+            </tr>
+            {% else %}
+            <tr><td colspan="3" class="empty-state">No datasets yet.<br>Add traces from the Traces tab.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
       </div>
     </div>
-    {% endfor %}
   </div>
-</section>
-{% else %}
-<section class="content-card">
-  <div class="card-section text-center py-20 text-[#8a93a5]">No datasets available yet.</div>
-</section>
-{% endif %}
 
-<section class="info-panel panel-teal">
-  <h3 class="card-title mb-3">Dataset Operations</h3>
-  <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-[#536072]">
-    <div><strong>Seed references</strong><br>Start with curated question and answer pairs.</div>
-    <div><strong>Promote production traces</strong><br>Turn real interactions into reusable evaluation examples.</div>
-    <div><strong>Reuse across experiments</strong><br>Keep one consistent benchmark set across runs.</div>
+  <!-- Right: examples + run eval -->
+  <div>
+    <div class="content-card" id="examplesCard">
+      <div class="examples-header">
+        <div>
+          <p style="margin:0;font-size:13px;font-weight:700;color:#252525;" id="dsDetailTitle">
+            {% if datasets %}{{ datasets[0].name }}{% else %}No dataset selected{% endif %}
+          </p>
+          <p style="margin:2px 0 0;font-size:11px;color:#6a7384;" id="dsDetailSub">
+            {% if datasets %}{{ datasets[0].example_count }} examples{% else %}Select a dataset from the left{% endif %}
+          </p>
+        </div>
+        {% if datasets %}
+        <button class="btn-run-eval" id="btnRunEval" data-ds-id="{{ datasets[0].id }}">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3l14 9-14 9V3z"/>
+          </svg>
+          Run Evaluation
+        </button>
+        {% endif %}
+      </div>
+
+      <div id="evalStatusMsg" class="eval-status-msg"></div>
+
+      <div class="table-shell" id="examplesTableWrap">
+        <table class="table-clean" style="table-layout:fixed;" id="examplesTable">
+          <colgroup>
+            <col style="width:220px">
+            <col style="width:280px">
+            <col style="width:120px">
+            <col style="width:100px">
+          </colgroup>
+          <thead>
+            <tr>
+              <th>Input</th>
+              <th>Reference Output</th>
+              <th>Source Trace</th>
+              <th>Added</th>
+            </tr>
+          </thead>
+          <tbody id="examplesTbody">
+            {% if datasets and datasets[0].examples %}
+              {% for ex in datasets[0].examples %}
+              <tr>
+                <td><div class="table-cell-clamp" style="font-weight:500;color:#31343a;">{{ ex.inputs.get('question', ex.inputs.get('input','—')) }}</div></td>
+                <td><div class="table-cell-clamp">{{ ex.outputs.get('answer', ex.outputs.get('output','—')) }}</div></td>
+                <td><span class="mono-text" style="font-size:10.5px;color:#8a93a5;">{{ ex.source_trace_id[:12] if ex.source_trace_id else '—' }}…</span></td>
+                <td style="font-size:11px;color:#8a93a5;">{{ ex.created_at[:10] if ex.created_at else '—' }}</td>
+              </tr>
+              {% endfor %}
+            {% else %}
+              <tr><td colspan="4" class="empty-state">No examples in this dataset.</td></tr>
+            {% endif %}
+          </tbody>
+        </table>
+      </div>
+    </div>
   </div>
-</section>
+</div>
 
+<script>
+  const datasets = {{ datasets | tojson }};
+
+  // Dataset list click
+  document.querySelectorAll('.ds-row').forEach(row => {
+    row.addEventListener('click', () => {
+      document.querySelectorAll('.ds-row').forEach(r => r.classList.remove('is-active'));
+      row.classList.add('is-active');
+      const dsId   = row.dataset.dsId;
+      const dsName = row.dataset.dsName;
+      const ds     = datasets.find(d => d.id === dsId);
+      if (!ds) return;
+
+      document.getElementById('dsDetailTitle').textContent = ds.name;
+      document.getElementById('dsDetailSub').textContent   = `${ds.example_count} examples`;
+
+      const btn = document.getElementById('btnRunEval');
+      if (btn) btn.dataset.dsId = dsId;
+
+      renderExamples(ds.examples || []);
+      clearEvalStatus();
+    });
+  });
+
+  function renderExamples(examples) {
+    const tbody = document.getElementById('examplesTbody');
+    if (!examples || examples.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="4" class="empty-state">No examples in this dataset.</td></tr>';
+      return;
+    }
+    tbody.innerHTML = examples.map(ex => {
+      const input  = ex.inputs?.question || ex.inputs?.input || '—';
+      const output = ex.outputs?.answer  || ex.outputs?.output || '—';
+      const trace  = ex.source_trace_id ? ex.source_trace_id.slice(0,12) + '…' : '—';
+      const date   = ex.created_at ? ex.created_at.slice(0,10) : '—';
+      return `<tr>
+        <td><div class="table-cell-clamp" style="font-weight:500;color:#31343a;">${esc(input)}</div></td>
+        <td><div class="table-cell-clamp">${esc(output)}</div></td>
+        <td><span class="mono-text" style="font-size:10.5px;color:#8a93a5;">${esc(trace)}</span></td>
+        <td style="font-size:11px;color:#8a93a5;">${esc(date)}</td>
+      </tr>`;
+    }).join('');
+  }
+
+  function esc(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  // Run evaluation
+  const btnRunEval = document.getElementById('btnRunEval');
+  if (btnRunEval) {
+    btnRunEval.addEventListener('click', async () => {
+      const dsId = btnRunEval.dataset.dsId;
+      if (!dsId) return;
+      btnRunEval.disabled = true;
+      btnRunEval.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 2v4m0 12v4M4.93 4.93l2.83 2.83m8.48 8.48 2.83 2.83M2 12h4m12 0h4M4.93 19.07l2.83-2.83m8.48-8.48 2.83-2.83"/></svg> Running…`;
+      showEvalStatus('Running evaluation across all models — this may take a minute…', 'info');
+      try {
+        const r = await fetch(`/api/datasets/${dsId}/run-eval`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ evaluator_ids: [], models: [] }),
+        });
+        const d = await r.json();
+        if (r.ok) {
+          showEvalStatus(
+            `✓ Evaluation complete — ${d.examples_evaluated} examples × ${d.scores_saved} scores. ` +
+            `<a href="/evaluations/${d.evaluation_id}" style="font-weight:700;color:var(--primary-strong);text-decoration:underline;">View results →</a>`,
+            'success'
+          );
+        } else {
+          showEvalStatus(d.detail || 'Evaluation failed.', 'error');
+        }
+      } catch {
+        showEvalStatus('Network error. Please try again.', 'error');
+      } finally {
+        btnRunEval.disabled = false;
+        btnRunEval.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3l14 9-14 9V3z"/></svg> Run Evaluation`;
+      }
+    });
+  }
+
+  function showEvalStatus(msg, type) {
+    const el = document.getElementById('evalStatusMsg');
+    el.innerHTML = msg;
+    el.className = `eval-status-msg visible ${type}`;
+  }
+
+  function clearEvalStatus() {
+    const el = document.getElementById('evalStatusMsg');
+    el.className = 'eval-status-msg';
+  }
+</script>
 {% endblock %}

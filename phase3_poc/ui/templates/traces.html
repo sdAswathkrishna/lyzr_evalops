@@ -1,85 +1,338 @@
 {% extends "base.html" %}
 {% block title %}Traces{% endblock %}
 {% block content %}
+<style>
+  .page-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+  }
+  .toolbar-left { flex: 1; min-width: 0; }
+  .toolbar-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+
+  .bulk-bar {
+    display: none;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 14px;
+    background: var(--primary-soft);
+    border: 1px solid rgba(33,129,136,0.2);
+    border-radius: 9px;
+    margin-bottom: 10px;
+  }
+  .bulk-bar.visible { display: flex; }
+  .bulk-count { font-size: 12px; font-weight: 600; color: var(--primary-strong); }
+
+  .dataset-select-inline {
+    border: 1px solid rgba(33,129,136,0.3);
+    border-radius: 7px;
+    background: white;
+    color: #3d4656;
+    font: inherit;
+    font-size: 12px;
+    padding: 5px 8px;
+    cursor: pointer;
+  }
+
+  .btn-bulk-add {
+    appearance: none;
+    border: none;
+    border-radius: 8px;
+    background: linear-gradient(180deg, var(--primary) 0%, var(--primary-strong) 100%);
+    color: white;
+    font: inherit;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 6px 14px;
+    cursor: pointer;
+    box-shadow: var(--shadow-sm);
+    transition: transform 0.15s ease, opacity 0.15s ease;
+  }
+  .btn-bulk-add:hover:not(:disabled) { transform: translateY(-1px); }
+  .btn-bulk-add:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .btn-clear-sel {
+    appearance: none;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: white;
+    color: #5c6678;
+    font: inherit;
+    font-size: 12px;
+    padding: 6px 12px;
+    cursor: pointer;
+  }
+  .btn-clear-sel:hover { background: #f1f3f6; }
+
+  /* Table checkbox column */
+  .col-check { width: 36px; padding-left: 14px !important; }
+  input[type="checkbox"] { accent-color: var(--primary); cursor: pointer; width: 14px; height: 14px; }
+
+  /* Row selected highlight */
+  tr.row-selected { background: rgba(33,129,136,0.05) !important; }
+
+  /* Detail panel */
+  .traces-layout {
+    display: grid;
+    grid-template-columns: 1fr 320px;
+    gap: 14px;
+    align-items: start;
+  }
+  .detail-panel {
+    position: sticky;
+    top: 14px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+  }
+  .detail-header {
+    padding: 12px 14px 10px;
+    border-bottom: 1px solid var(--border);
+    background: white;
+  }
+  .detail-title { font-size: 13px; font-weight: 700; color: #252525; margin: 0; }
+  .detail-body { padding: 12px 14px; display: flex; flex-direction: column; gap: 10px; }
+  .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .detail-item { border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; background: #fbfcfe; }
+  .detail-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em; color: #8a93a5; font-weight: 600; margin-bottom: 3px; }
+  .detail-value { font-size: 12px; color: #31343a; word-break: break-word; }
+  .detail-block { display: flex; flex-direction: column; gap: 4px; }
+  .detail-text {
+    border: 1px solid var(--border); border-radius: 8px; background: #fbfcfe;
+    padding: 9px 10px; font-size: 11.5px; line-height: 1.5; color: #3d4656;
+    white-space: pre-wrap; word-break: break-word; max-height: 180px; overflow-y: auto;
+  }
+</style>
 
 <section class="hero-panel">
-  <div class="eyebrow">Trace review</div>
-  <h1 class="page-title">Execution Traces</h1>
-  <p class="page-subtitle">Inspect run history, latency, status, and platform-specific output from the live evaluation stack.</p>
+  <h1 class="page-title">Traces</h1>
+  <p class="page-subtitle">All Lyzr ADK agent traces. Select rows and add to a dataset in bulk.</p>
 </section>
 
-<section class="grid grid-cols-1 xl:grid-cols-2 gap-6 mb-6">
-  <div class="content-card">
-    <div class="card-section border-b border-[var(--border)] flex items-center justify-between">
-      <div>
-        <h2 class="card-title">LangSmith Traces</h2>
-        <p class="card-description">Cloud trace records from the external evaluation path.</p>
+<!-- Bulk action bar (shown when rows are selected) -->
+<div class="bulk-bar" id="bulkBar">
+  <span class="bulk-count" id="bulkCount">0 selected</span>
+  <select class="dataset-select-inline" id="bulkDatasetSelect">
+    {% if datasets %}
+      {% for ds in datasets %}
+      <option value="{{ ds.name }}">{{ ds.name }}</option>
+      {% endfor %}
+    {% else %}
+      <option value="production-traces">production-traces</option>
+    {% endif %}
+  </select>
+  <button class="btn-bulk-add" id="btnBulkAdd">Add to Dataset</button>
+  <button class="btn-clear-sel" id="btnClearSel">Clear selection</button>
+  <span id="bulkStatus" style="font-size:11.5px;color:var(--primary-strong);font-weight:600;"></span>
+</div>
+
+<div class="traces-layout">
+  <!-- Main table -->
+  <div>
+    <div class="content-card">
+      <div class="table-shell">
+        <table class="table-clean" style="table-layout:fixed;">
+          <colgroup>
+            <col style="width:36px">
+            <col style="width:180px">
+            <col style="width:240px">
+            <col style="width:70px">
+            <col style="width:72px">
+            <col style="width:68px">
+            <col style="width:130px">
+            <col style="width:110px">
+          </colgroup>
+          <thead>
+            <tr>
+              <th class="col-check">
+                <input type="checkbox" id="checkAll" title="Select all">
+              </th>
+              <th>Input</th>
+              <th>Output</th>
+              <th>Version</th>
+              <th>Latency</th>
+              <th>Tokens</th>
+              <th>Status</th>
+              <th>Timestamp</th>
+            </tr>
+          </thead>
+          <tbody id="tracesTbody">
+            {% for t in traces %}
+            <tr class="table-row-action trace-row" data-trace-id="{{ t.id }}" data-index="{{ loop.index0 }}">
+              <td class="col-check" onclick="event.stopPropagation()">
+                <input type="checkbox" class="row-check" data-id="{{ t.id }}">
+              </td>
+              <td><div class="table-cell-clamp" style="font-weight:500;color:#31343a;">{{ t.input or '—' }}</div></td>
+              <td><div class="table-cell-clamp">{{ t.output or '—' }}</div></td>
+              <td><span class="badge badge-teal">{{ t.agent_version or 'v1' }}</span></td>
+              <td>{{ t.latency_ms|int if t.latency_ms else '—' }} {% if t.latency_ms %}ms{% endif %}</td>
+              <td>{{ t.token_count or '—' }}</td>
+              <td>
+                <span class="badge {{ 'badge-green' if t.status == 'success' else 'badge-red' }}">
+                  {{ 'Success' if t.status == 'success' else 'Error' }}
+                </span>
+              </td>
+              <td style="font-size:11px;color:#8a93a5;">{{ t.timestamp[:16].replace('T',' ') if t.timestamp else '—' }}</td>
+            </tr>
+            {% else %}
+            <tr><td colspan="8" style="text-align:center;padding:32px;color:#8a93a5;font-size:12px;">No traces yet. Chat with the agent to generate traces.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
       </div>
-      <span class="badge badge-blue">{{ ls_traces|length }} runs</span>
     </div>
-    <div class="max-h-[32rem] overflow-y-auto">
-      {% if ls_traces %}
-      <div class="divide-y divide-[rgba(37,37,37,0.06)]">
-        {% for t in ls_traces %}
-        <div class="px-6 py-4 hover:bg-[rgba(33,129,136,0.03)]">
-          <div class="flex items-center justify-between gap-3 mb-2">
-            <span class="mono-text text-xs text-[#8a93a5]">{{ t.id[:12] }}...</span>
-            <div class="flex items-center gap-2">
-              <span class="badge badge-slate">{{ t.latency_ms|int }} ms</span>
-              <span class="badge badge-green">{{ t.status }}</span>
-            </div>
-          </div>
-          <div class="font-medium text-sm text-[#31343a]">{{ t.input }}</div>
-          <div class="text-sm text-[#6a7384] mt-1">{{ t.output[:120] }}{% if t.output|length > 120 %}...{% endif %}</div>
+  </div>
+
+  <!-- Detail panel -->
+  <div class="detail-panel">
+    <div class="detail-header">
+      <p class="detail-title">Trace Detail</p>
+      <p style="font-size:11px;color:#6a7384;margin:2px 0 0;" id="detailHint">Select a row to inspect.</p>
+    </div>
+    <div class="detail-body">
+      <div class="detail-grid">
+        <div class="detail-item">
+          <div class="detail-label">Trace ID</div>
+          <div class="detail-value mono-text" id="dId" style="font-size:10.5px;">—</div>
         </div>
-        {% endfor %}
-      </div>
-      {% else %}
-      <div class="px-6 py-16 text-center text-sm text-[#8a93a5]">No LangSmith traces available yet.</div>
-      {% endif %}
-    </div>
-  </div>
-
-  <div class="content-card">
-    <div class="card-section border-b border-[var(--border)] flex items-center justify-between">
-      <div>
-        <h2 class="card-title">Lyzr Traces</h2>
-        <p class="card-description">Runtime-captured traces stored locally for review and promotion.</p>
-      </div>
-      <span class="badge badge-teal">{{ lyzr_traces|length }} runs</span>
-    </div>
-    <div class="max-h-[32rem] overflow-y-auto">
-      {% if lyzr_traces %}
-      <div class="divide-y divide-[rgba(37,37,37,0.06)]">
-        {% for t in lyzr_traces %}
-        <div class="px-6 py-4 hover:bg-[rgba(33,129,136,0.03)]">
-          <div class="flex items-center justify-between gap-3 mb-2">
-            <span class="mono-text text-xs text-[#8a93a5]">{{ t.id[:12] }}...</span>
-            <div class="flex items-center gap-2">
-              <span class="badge badge-slate">{{ t.latency_ms|int }} ms</span>
-              <span class="badge badge-teal">v{{ t.agent_version }}</span>
-              <span class="badge badge-green">{{ t.status }}</span>
-            </div>
-          </div>
-          <div class="font-medium text-sm text-[#31343a]">{{ t.input }}</div>
-          <div class="text-sm text-[#6a7384] mt-1">{{ t.output[:120] if t.output else 'No output recorded' }}{% if t.output and t.output|length > 120 %}...{% endif %}</div>
+        <div class="detail-item">
+          <div class="detail-label">Status</div>
+          <div class="detail-value" id="dStatus">—</div>
         </div>
-        {% endfor %}
+        <div class="detail-item">
+          <div class="detail-label">Latency</div>
+          <div class="detail-value" id="dLatency">—</div>
+        </div>
+        <div class="detail-item">
+          <div class="detail-label">Tokens</div>
+          <div class="detail-value" id="dTokens">—</div>
+        </div>
+        <div class="detail-item">
+          <div class="detail-label">Version</div>
+          <div class="detail-value" id="dVersion">—</div>
+        </div>
+        <div class="detail-item">
+          <div class="detail-label">Timestamp</div>
+          <div class="detail-value" id="dTime" style="font-size:10.5px;">—</div>
+        </div>
       </div>
-      {% else %}
-      <div class="px-6 py-16 text-center text-sm text-[#8a93a5]">No Lyzr traces available yet.</div>
-      {% endif %}
+      <div class="detail-block">
+        <div class="detail-label">Input</div>
+        <div class="detail-text" id="dInput">—</div>
+      </div>
+      <div class="detail-block">
+        <div class="detail-label">Output</div>
+        <div class="detail-text" id="dOutput">—</div>
+      </div>
     </div>
   </div>
-</section>
+</div>
 
-<section class="info-panel panel-teal">
-  <h3 class="card-title mb-3">Trace Handling</h3>
-  <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-[#536072]">
-    <div><strong>Runtime capture</strong><br>Traces are collected without changing the agent execution contract.</div>
-    <div><strong>Persistent identifiers</strong><br>Each run is addressable for feedback, review, and dataset promotion.</div>
-    <div><strong>Local durability</strong><br>Operational review works even when the cloud path is not available.</div>
-  </div>
-</section>
+<script>
+  // ── Row click → detail panel ──────────────────────────────────────────────
+  const rows = Array.from(document.querySelectorAll('.trace-row'));
+  rows.forEach((row, i) => {
+    row.addEventListener('click', () => {
+      rows.forEach(r => r.classList.remove('is-active'));
+      row.classList.add('is-active');
+      loadDetail(row.dataset.traceId);
+    });
+    if (i === 0) { row.classList.add('is-active'); loadDetail(row.dataset.traceId); }
+  });
 
+  async function loadDetail(traceId) {
+    document.getElementById('detailHint').textContent = 'Loading…';
+    try {
+      const r = await fetch(`/api/traces/${traceId}`);
+      const d = await r.json();
+      document.getElementById('detailHint').textContent = 'Trace details';
+      document.getElementById('dId').textContent      = d.id || traceId;
+      document.getElementById('dStatus').textContent  = d.status === 'success' ? 'Success' : 'Error';
+      document.getElementById('dLatency').textContent = d.latency_ms != null ? `${Math.round(d.latency_ms)} ms` : '—';
+      document.getElementById('dTokens').textContent  = d.token_count ?? '—';
+      document.getElementById('dVersion').textContent = d.agent_version || '—';
+      document.getElementById('dTime').textContent    = d.timestamp ? d.timestamp.replace('T',' ').slice(0,19) : '—';
+      document.getElementById('dInput').textContent   = d.input  || '—';
+      document.getElementById('dOutput').textContent  = d.output || '—';
+    } catch {
+      document.getElementById('detailHint').textContent = 'Failed to load.';
+    }
+  }
+
+  // ── Checkbox selection ────────────────────────────────────────────────────
+  const checkAll    = document.getElementById('checkAll');
+  const bulkBar     = document.getElementById('bulkBar');
+  const bulkCount   = document.getElementById('bulkCount');
+  const bulkStatus  = document.getElementById('bulkStatus');
+
+  function getChecked() {
+    return Array.from(document.querySelectorAll('.row-check:checked')).map(c => c.dataset.id);
+  }
+
+  function updateBulkBar() {
+    const ids = getChecked();
+    bulkBar.classList.toggle('visible', ids.length > 0);
+    bulkCount.textContent = `${ids.length} selected`;
+    document.querySelectorAll('.trace-row').forEach(row => {
+      const cb = row.querySelector('.row-check');
+      row.classList.toggle('row-selected', cb && cb.checked);
+    });
+  }
+
+  document.querySelectorAll('.row-check').forEach(cb => {
+    cb.addEventListener('change', () => {
+      checkAll.indeterminate = true;
+      updateBulkBar();
+    });
+  });
+
+  checkAll.addEventListener('change', () => {
+    document.querySelectorAll('.row-check').forEach(cb => { cb.checked = checkAll.checked; });
+    updateBulkBar();
+  });
+
+  document.getElementById('btnClearSel').addEventListener('click', () => {
+    document.querySelectorAll('.row-check').forEach(cb => { cb.checked = false; });
+    checkAll.checked = false;
+    updateBulkBar();
+  });
+
+  // ── Bulk add to dataset ───────────────────────────────────────────────────
+  document.getElementById('btnBulkAdd').addEventListener('click', async () => {
+    const ids         = getChecked();
+    const datasetName = document.getElementById('bulkDatasetSelect').value;
+    const btn         = document.getElementById('btnBulkAdd');
+    if (!ids.length || !datasetName) return;
+
+    btn.disabled = true;
+    btn.textContent = 'Adding…';
+    bulkStatus.textContent = '';
+
+    try {
+      const r = await fetch('/api/traces/bulk-add-to-dataset', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ trace_ids: ids, dataset_name: datasetName }),
+      });
+      const d = await r.json();
+      if (r.ok) {
+        bulkStatus.textContent = `✓ ${d.added} added to "${datasetName}" (${d.total_examples} total)`;
+        document.querySelectorAll('.row-check').forEach(cb => { cb.checked = false; });
+        checkAll.checked = false;
+        updateBulkBar();
+      } else {
+        bulkStatus.textContent = d.detail || 'Failed.';
+      }
+    } catch {
+      bulkStatus.textContent = 'Network error.';
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Add to Dataset';
+    }
+  });
+</script>
 {% endblock %}

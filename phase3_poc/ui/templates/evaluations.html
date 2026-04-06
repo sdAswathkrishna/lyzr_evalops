@@ -1,0 +1,589 @@
+{% extends "base.html" %}
+{% block title %}Evaluations{% endblock %}
+{% block content %}
+<style>
+  /* ── Evaluator card grid (Sparrow style) ─────────────────────────────── */
+  .eval-def-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+
+  .eval-def-card {
+    border: 2px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 16px;
+    cursor: pointer;
+    background: white;
+    transition: border-color 0.18s ease, background 0.18s ease, box-shadow 0.18s ease;
+    user-select: none;
+    position: relative;
+  }
+
+  .eval-def-card:hover {
+    border-color: rgba(33,129,136,0.4);
+    background: rgba(33,129,136,0.02);
+  }
+
+  .eval-def-card.selected {
+    border-color: var(--primary);
+    background: rgba(33,129,136,0.04);
+    box-shadow: 0 0 0 3px rgba(33,129,136,0.12);
+  }
+
+  .eval-def-card.create-card {
+    border-style: dashed;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-start;
+  }
+
+  .eval-def-card.create-card:hover {
+    border-color: var(--primary);
+  }
+
+  .card-check {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 2px solid var(--border);
+    background: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s, border-color 0.15s;
+  }
+
+  .eval-def-card.selected .card-check {
+    background: var(--primary);
+    border-color: var(--primary);
+  }
+
+  .card-check::after {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: white;
+    display: none;
+  }
+
+  .eval-def-card.selected .card-check::after { display: block; }
+
+  .eval-card-name {
+    font-size: 12px;
+    font-weight: 700;
+    color: #252525;
+    margin: 0 0 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    padding-right: 20px;
+  }
+
+  .eval-card-desc {
+    font-size: 11.5px;
+    color: #687385;
+    line-height: 1.5;
+    margin: 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  /* ── Run panel ───────────────────────────────────────────────────────── */
+  .run-panel {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    box-shadow: var(--shadow-sm);
+    padding: 14px 16px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: flex-end;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .run-field { display: flex; flex-direction: column; gap: 5px; }
+  .run-label { font-size: 11px; font-weight: 600; color: #515a69; }
+
+  .run-select {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: white;
+    color: #3d4656;
+    font: inherit;
+    font-size: 12px;
+    padding: 7px 10px;
+    cursor: pointer;
+    min-width: 180px;
+    transition: border-color 0.15s;
+  }
+  .run-select:focus { outline: none; border-color: rgba(33,129,136,0.4); }
+
+  .btn-run {
+    appearance: none;
+    border: none;
+    border-radius: 8px;
+    background: linear-gradient(180deg, var(--primary) 0%, var(--primary-strong) 100%);
+    color: white;
+    font: inherit;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 8px 20px;
+    cursor: pointer;
+    box-shadow: var(--shadow-sm);
+    transition: transform 0.15s ease, opacity 0.15s ease;
+    align-self: flex-end;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .btn-run:hover:not(:disabled) { transform: translateY(-1px); }
+  .btn-run:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .sel-summary {
+    font-size: 11.5px;
+    color: #7b8495;
+    align-self: flex-end;
+    padding-bottom: 8px;
+  }
+  .sel-summary strong { color: var(--primary-strong); }
+
+  .run-status {
+    display: none;
+    width: 100%;
+    padding: 9px 12px;
+    border-radius: 8px;
+    font-size: 12px;
+    margin-top: 6px;
+  }
+  .run-status.visible { display: block; }
+  .run-status.info    { background: var(--info-bg);    color: var(--info-text); }
+  .run-status.success { background: var(--success-bg); color: var(--success-text); }
+  .run-status.error   { background: var(--danger-bg);  color: var(--danger-text); }
+
+  /* ── Past evaluations table ──────────────────────────────────────────── */
+  .empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: #8a93a5;
+    font-size: 12px;
+    line-height: 1.6;
+  }
+
+  /* ── Create evaluator modal ──────────────────────────────────────────── */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.3);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+
+  .modal-box {
+    background: white;
+    border-radius: 14px;
+    box-shadow: 0 24px 64px rgba(0,0,0,0.18);
+    width: 480px;
+    max-width: 96vw;
+    padding: 0;
+    overflow: hidden;
+  }
+
+  .modal-header {
+    padding: 16px 20px 12px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .modal-title { font-size: 14px; font-weight: 700; color: #252525; margin: 0; }
+
+  .modal-close {
+    appearance: none;
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    background: white;
+    color: #5c6678;
+    font-size: 16px;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    line-height: 1;
+  }
+
+  .modal-body { padding: 16px 20px; display: flex; flex-direction: column; gap: 12px; }
+
+  .field-label { font-size: 11px; font-weight: 600; color: #515a69; margin-bottom: 5px; }
+  .field-hint  { font-size: 10.5px; color: #8a93a5; margin-top: 4px; }
+
+  .field-input {
+    width: 100%;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 10px;
+    font: inherit;
+    font-size: 12px;
+    color: #252525;
+    background: white;
+    box-sizing: border-box;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  .field-input:focus { outline: none; border-color: rgba(33,129,136,0.45); box-shadow: 0 0 0 3px rgba(33,129,136,0.1); }
+
+  .field-textarea {
+    width: 100%;
+    min-height: 90px;
+    resize: vertical;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 10px;
+    font: inherit;
+    font-size: 12px;
+    line-height: 1.5;
+    color: #252525;
+    background: white;
+    box-sizing: border-box;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  .field-textarea:focus { outline: none; border-color: rgba(33,129,136,0.45); box-shadow: 0 0 0 3px rgba(33,129,136,0.1); }
+
+  .modal-footer {
+    padding: 12px 20px 16px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+  }
+
+  .btn-cancel {
+    appearance: none;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: white;
+    color: #3d4656;
+    font: inherit;
+    font-size: 12px;
+    font-weight: 500;
+    padding: 8px 16px;
+    cursor: pointer;
+  }
+  .btn-cancel:hover { background: #f1f3f6; }
+
+  .btn-save-eval {
+    appearance: none;
+    border: none;
+    border-radius: 8px;
+    background: linear-gradient(180deg, var(--primary) 0%, var(--primary-strong) 100%);
+    color: white;
+    font: inherit;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 8px 18px;
+    cursor: pointer;
+    box-shadow: var(--shadow-sm);
+  }
+  .btn-save-eval:disabled { opacity: 0.5; cursor: not-allowed; }
+</style>
+
+<section class="hero-panel">
+  <h1 class="page-title">Evaluations</h1>
+  <p class="page-subtitle">Select evaluators, choose a dataset, and run LLM-as-a-judge scoring across multiple models.</p>
+</section>
+
+<!-- ── Evaluator library ──────────────────────────────────────────────────── -->
+<div style="margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;">
+  <p style="margin:0;font-size:12px;font-weight:600;color:#515a69;">
+    Select evaluators to run &nbsp;<span style="font-weight:400;color:#8a93a5;">(click to toggle)</span>
+  </p>
+  <span id="selCount" style="font-size:11.5px;color:#7b8495;">0 selected</span>
+</div>
+
+<div class="eval-def-grid" id="evalDefGrid">
+  {% for ev in evaluator_defs %}
+  <div class="eval-def-card {{ 'selected' if loop.first }}"
+       data-ev-id="{{ ev.id }}" data-ev-name="{{ ev.name }}">
+    <div class="card-check"></div>
+    <p class="eval-card-name">{{ ev.name.replace('_',' ') }}</p>
+    <p class="eval-card-desc">{{ ev.description }}</p>
+  </div>
+  {% endfor %}
+
+  <!-- Create your own -->
+  <div class="eval-def-card create-card" id="createEvalCard">
+    <p class="eval-card-name" style="color:var(--primary-strong);">+ Create your own</p>
+    <p class="eval-card-desc">Configure your own evaluation to suit your specific use case.</p>
+  </div>
+</div>
+
+<!-- ── Run panel ─────────────────────────────────────────────────────────── -->
+<div class="run-panel">
+  <div class="run-field">
+    <span class="run-label">Dataset</span>
+    <select class="run-select" id="runDatasetSelect">
+      {% for ds in datasets %}
+      <option value="{{ ds.id }}">{{ ds.name }}</option>
+      {% else %}
+      <option value="">No datasets available</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="run-field">
+    <span class="run-label">Evaluation name (optional)</span>
+    <input type="text" class="run-select" id="runEvalName"
+           placeholder="Auto-generated if blank" style="min-width:200px;">
+  </div>
+  <div class="sel-summary" id="selSummary">
+    <strong id="selCountSummary">0</strong> evaluators · all models
+  </div>
+  <button class="btn-run" id="btnRun">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3l14 9-14 9V3z"/>
+    </svg>
+    Run Evaluation
+  </button>
+  <div class="run-status" id="runStatus"></div>
+</div>
+
+<!-- ── Past evaluations table ────────────────────────────────────────────── -->
+<div style="margin-bottom:8px;">
+  <p style="margin:0;font-size:13px;font-weight:700;color:#252525;">Past Evaluations</p>
+  <p style="margin:2px 0 0;font-size:11px;color:#6a7384;">{{ evaluations|length }} run{{ 's' if evaluations|length != 1 else '' }}</p>
+</div>
+
+<div class="content-card">
+  <div class="table-shell">
+    <table class="table-clean" style="table-layout:fixed;">
+      <colgroup>
+        <col style="width:220px">
+        <col style="width:160px">
+        <col style="width:80px">
+        <col style="width:100px">
+        <col style="width:260px">
+        <col style="width:90px">
+      </colgroup>
+      <thead>
+        <tr>
+          <th>Evaluation Name</th>
+          <th>Dataset</th>
+          <th>Version</th>
+          <th>Date</th>
+          <th>Scores</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for ev in evaluations %}
+        <tr>
+          <td style="font-weight:600;color:#252525;">{{ ev.name }}</td>
+          <td style="color:#6a7384;font-size:11.5px;">{{ ev.dataset_id[:12] if ev.dataset_id else '—' }}…</td>
+          <td><span class="badge badge-teal">{{ ev.agent_version or 'v1' }}</span></td>
+          <td style="font-size:11px;color:#8a93a5;">{{ ev.created_at[:10] if ev.created_at else '—' }}</td>
+          <td>
+            {% for metric, val in ev.scores.items() %}
+            <span class="badge {{ 'badge-green' if val >= 0.7 else ('badge-yellow' if val >= 0.4 else 'badge-red') }}"
+                  style="margin-right:4px;">
+              {{ metric }}: {{ "%.2f"|format(val) }}
+            </span>
+            {% else %}
+            <span style="font-size:11px;color:#8a93a5;">No scores</span>
+            {% endfor %}
+          </td>
+          <td>
+            <a href="/evaluations/{{ ev.id }}"
+               style="font-size:12px;font-weight:600;color:var(--primary-strong);text-decoration:none;">
+              View →
+            </a>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="6" class="empty-state">No evaluations run yet. Select evaluators above and click Run.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ── Create evaluator modal ─────────────────────────────────────────────── -->
+<div class="modal-overlay" id="createModal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <p class="modal-title">Create Evaluator</p>
+      <button class="modal-close" id="modalClose">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="createStatus" style="display:none;padding:8px 10px;border-radius:8px;font-size:12px;"></div>
+      <div>
+        <div class="field-label">Name</div>
+        <input type="text" class="field-input" id="newEvName"
+               placeholder="e.g. TONE_PROFESSIONAL" style="text-transform:uppercase;">
+        <p class="field-hint">Use ALL_CAPS with underscores.</p>
+      </div>
+      <div>
+        <div class="field-label">Description</div>
+        <textarea class="field-textarea" id="newEvDesc" rows="3"
+                  placeholder="What does this evaluator check for?"></textarea>
+      </div>
+      <div>
+        <div class="field-label">Judge Prompt</div>
+        <textarea class="field-textarea" id="newEvPrompt" rows="5"
+                  placeholder="Use {input}, {output}, {reference} as placeholders.&#10;&#10;End with:&#10;SCORE: [1 for PASS, 0 for FAIL]&#10;REASON: [one sentence]"></textarea>
+        <p class="field-hint">Variables: <code>{input}</code> <code>{output}</code> <code>{reference}</code></p>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" id="modalCancel">Cancel</button>
+      <button class="btn-save-eval" id="btnSaveEval">Save Evaluator</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const evalDefs = {{ evaluator_defs | tojson }};
+
+  // ── Card toggle ─────────────────────────────────────────────────────────
+  // Pre-select first card
+  const cards = Array.from(document.querySelectorAll('.eval-def-card:not(.create-card)'));
+  if (cards.length > 0) cards[0].classList.add('selected');
+
+  cards.forEach(card => {
+    card.addEventListener('click', () => {
+      card.classList.toggle('selected');
+      updateSelCount();
+    });
+  });
+
+  function getSelectedIds() {
+    return Array.from(document.querySelectorAll('.eval-def-card.selected:not(.create-card)'))
+      .map(c => c.dataset.evId);
+  }
+
+  function updateSelCount() {
+    const n = getSelectedIds().length;
+    document.getElementById('selCount').textContent        = `${n} selected`;
+    document.getElementById('selCountSummary').textContent = n || 'All';
+  }
+  updateSelCount();
+
+  // ── Run evaluation ──────────────────────────────────────────────────────
+  document.getElementById('btnRun').addEventListener('click', async () => {
+    const dsId  = document.getElementById('runDatasetSelect').value;
+    const name  = document.getElementById('runEvalName').value.trim();
+    const evIds = getSelectedIds();
+    const btn   = document.getElementById('btnRun');
+
+    if (!dsId) { showRunStatus('Please select a dataset.', 'error'); return; }
+
+    btn.disabled = true;
+    btn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 2v4m0 12v4M4.93 4.93l2.83 2.83m8.48 8.48 2.83 2.83M2 12h4m12 0h4M4.93 19.07l2.83-2.83m8.48-8.48 2.83-2.83"/></svg> Running…`;
+    showRunStatus('Running evaluation — this may take a minute or two…', 'info');
+
+    try {
+      const r = await fetch(`/api/datasets/${dsId}/run-eval`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          evaluator_ids: evIds,
+          eval_name: name,
+          models: [],
+        }),
+      });
+      const d = await r.json();
+      if (r.ok) {
+        showRunStatus(
+          `✓ Done — ${d.examples_evaluated} examples, ${d.scores_saved} scores saved. ` +
+          `<a href="/evaluations/${d.evaluation_id}" style="font-weight:700;color:var(--primary-strong);text-decoration:underline;">View results →</a>`,
+          'success'
+        );
+        setTimeout(() => location.reload(), 3500);
+      } else {
+        showRunStatus(d.detail || 'Evaluation failed.', 'error');
+      }
+    } catch {
+      showRunStatus('Network error. Please try again.', 'error');
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3l14 9-14 9V3z"/></svg> Run Evaluation`;
+    }
+  });
+
+  function showRunStatus(msg, type) {
+    const el = document.getElementById('runStatus');
+    el.innerHTML = msg;
+    el.className = `run-status visible ${type}`;
+  }
+
+  // ── Create evaluator modal ──────────────────────────────────────────────
+  document.getElementById('createEvalCard').addEventListener('click', () => {
+    document.getElementById('createModal').classList.add('open');
+  });
+
+  function closeModal() {
+    document.getElementById('createModal').classList.remove('open');
+    document.getElementById('newEvName').value    = '';
+    document.getElementById('newEvDesc').value    = '';
+    document.getElementById('newEvPrompt').value  = '';
+    document.getElementById('createStatus').style.display = 'none';
+  }
+
+  document.getElementById('modalClose').addEventListener('click',  closeModal);
+  document.getElementById('modalCancel').addEventListener('click', closeModal);
+  document.getElementById('createModal').addEventListener('click', e => {
+    if (e.target === document.getElementById('createModal')) closeModal();
+  });
+
+  document.getElementById('btnSaveEval').addEventListener('click', async () => {
+    const name   = document.getElementById('newEvName').value.trim().toUpperCase().replace(/\s+/g,'_');
+    const desc   = document.getElementById('newEvDesc').value.trim();
+    const prompt = document.getElementById('newEvPrompt').value.trim();
+    const btn    = document.getElementById('btnSaveEval');
+    const status = document.getElementById('createStatus');
+
+    if (!name || !desc || !prompt) {
+      status.textContent    = 'All fields are required.';
+      status.style.cssText  = 'display:block;background:var(--danger-bg);color:var(--danger-text);';
+      return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = 'Saving…';
+    try {
+      const r = await fetch('/api/evaluator-definitions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, description: desc, judge_prompt: prompt }),
+      });
+      const d = await r.json();
+      if (r.ok) {
+        status.textContent   = `✓ "${d.name}" saved. Refreshing…`;
+        status.style.cssText = 'display:block;background:var(--success-bg);color:var(--success-text);';
+        setTimeout(() => { closeModal(); location.reload(); }, 1500);
+      } else {
+        status.textContent   = d.detail || 'Save failed.';
+        status.style.cssText = 'display:block;background:var(--danger-bg);color:var(--danger-text);';
+        btn.disabled = false;
+        btn.textContent = 'Save Evaluator';
+      }
+    } catch {
+      status.textContent   = 'Network error.';
+      status.style.cssText = 'display:block;background:var(--danger-bg);color:var(--danger-text);';
+      btn.disabled = false;
+      btn.textContent = 'Save Evaluator';
+    }
+  });
+</script>
+{% endblock %}

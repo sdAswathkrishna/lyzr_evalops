@@ -16,8 +16,8 @@
       --surface-soft: #f9fafb;
       --card: #ffffff;
       --muted: #666666;
-      --border: #ebebeb;
-      --border-strong: rgba(37, 37, 37, 0.10);
+      --border: #e7e9ee;
+      --border-strong: rgba(37, 37, 37, 0.12);
       --primary: #218188;
       --primary-soft: #e4f4f5;
       --primary-strong: #17646a;
@@ -30,10 +30,10 @@
       --danger-text: #b42318;
       --info-bg: #eef4ff;
       --info-text: #2f5fa8;
-      --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.04);
-      --shadow-md: 0 10px 30px rgba(15, 23, 42, 0.06);
-      --radius-lg: 14px;
-      --radius-md: 10px;
+      --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.035);
+      --shadow-md: 0 8px 24px rgba(15, 23, 42, 0.05);
+      --radius-lg: 12px;
+      --radius-md: 8px;
     }
 
     html, body {
@@ -46,44 +46,91 @@
 
     .app-shell {
       display: flex;
-      min-height: 100vh;
+      height: 100vh;
       background: var(--surface);
+      overflow: hidden;
     }
 
     .sidebar {
-      width: 248px;
+      width: 220px;
       background: var(--sidebar);
       border-right: 1px solid var(--border);
       display: flex;
       flex-direction: column;
       flex-shrink: 0;
+      transition: width 0.22s ease;
+      overflow: hidden;
+    }
+
+    .app-shell.sidebar-collapsed .sidebar {
+      width: 68px;
     }
 
     .brand-lockup {
       display: flex;
       align-items: center;
-      gap: 12px;
-      padding: 20px 20px 18px;
+      gap: 10px;
+      padding: 14px 14px 12px;
       border-bottom: 1px solid var(--border);
       background: var(--sidebar);
     }
 
+    .brand-copy {
+      min-width: 0;
+      transition: opacity 0.18s ease, width 0.18s ease;
+    }
+
+    .app-shell.sidebar-collapsed .brand-copy {
+      opacity: 0;
+      width: 0;
+      overflow: hidden;
+    }
+
+    .sidebar-toggle {
+      margin-left: auto;
+      width: 28px;
+      height: 28px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: white;
+      color: #5c6678;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: background 0.18s ease, color 0.18s ease, transform 0.18s ease;
+      flex-shrink: 0;
+    }
+
+    .sidebar-toggle:hover {
+      background: var(--primary-soft);
+      color: var(--primary-strong);
+    }
+
+    .app-shell.sidebar-collapsed .sidebar-toggle svg {
+      transform: rotate(180deg);
+    }
+
     .brand-mark {
-      width: 40px;
-      height: 40px;
-      border-radius: 12px;
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
       background: linear-gradient(180deg, var(--primary) 0%, var(--primary-strong) 100%);
       color: white;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-weight: 700;
-      font-size: 16px;
       box-shadow: var(--shadow-sm);
+      flex-shrink: 0;
+    }
+
+    .brand-mark svg {
+      width: 20px;
+      height: 20px;
     }
 
     .brand-title {
-      font-size: 18px;
+      font-size: 15px;
       font-weight: 700;
       line-height: 1.2;
       margin: 0;
@@ -92,17 +139,17 @@
     .brand-subtitle {
       margin: 2px 0 0;
       color: #6a7384;
-      font-size: 13px;
+      font-size: 11px;
       font-weight: 500;
     }
 
     .nav-group {
-      padding: 18px 12px 0;
+      padding: 12px 10px 0;
     }
 
     .nav-label {
-      padding: 0 12px 8px;
-      font-size: 12px;
+      padding: 0 10px 6px;
+      font-size: 10px;
       font-weight: 600;
       letter-spacing: 0.04em;
       text-transform: uppercase;
@@ -113,14 +160,15 @@
     .nav-active {
       display: flex;
       align-items: center;
-      gap: 10px;
-      padding: 11px 12px;
-      border-radius: 12px;
-      font-size: 15px;
+      gap: 9px;
+      padding: 9px 10px;
+      border-radius: 10px;
+      font-size: 13px;
       font-weight: 500;
       text-decoration: none;
       transition: background 0.18s ease, color 0.18s ease, box-shadow 0.18s ease;
       margin-bottom: 4px;
+      white-space: nowrap;
     }
 
     .nav-link {
@@ -139,41 +187,56 @@
     }
 
     .nav-icon {
-      width: 18px;
-      height: 18px;
+      width: 16px;
+      height: 16px;
       flex-shrink: 0;
     }
 
-    .status-dot {
-      margin-left: auto;
-      width: 8px;
-      height: 8px;
-      border-radius: 999px;
-      background: #22c55e;
-      box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.12);
+    .nav-text {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      transition: opacity 0.18s ease, width 0.18s ease;
+    }
+
+    .app-shell.sidebar-collapsed .nav-label,
+    .app-shell.sidebar-collapsed .nav-text,
+    .app-shell.sidebar-collapsed .sidebar-footer-copy {
+      opacity: 0;
+      width: 0;
+      padding: 0;
+      margin: 0;
+      overflow: hidden;
+    }
+
+    .app-shell.sidebar-collapsed .nav-link,
+    .app-shell.sidebar-collapsed .nav-active {
+      justify-content: center;
+      padding-left: 0;
+      padding-right: 0;
+      gap: 0;
     }
 
     .sidebar-footer {
       margin-top: auto;
-      padding: 16px 20px 20px;
+      padding: 12px 14px 14px;
       border-top: 1px solid var(--border);
       color: #7b8495;
-      font-size: 12px;
+      font-size: 11px;
       line-height: 1.5;
+    }
+
+    .sidebar-footer-copy {
+      transition: opacity 0.18s ease, width 0.18s ease;
     }
 
     .main-panel {
       flex: 1;
       min-width: 0;
       display: flex;
-      gap: 24px;
-      padding: 24px;
+      gap: 0;
+      padding: 0;
       align-items: stretch;
-    }
-
-    .page-wrap {
-      flex: 1;
-      min-width: 0;
+      overflow: hidden;
     }
 
     .content-column {
@@ -181,15 +244,20 @@
       min-width: 0;
     }
 
+    .page-wrap {
+      height: 100vh;
+      overflow: auto;
+      padding: 14px 16px 18px;
+    }
+
     .chat-rail {
-      width: 380px;
+      width: 372px;
       flex-shrink: 0;
       display: flex;
       flex-direction: column;
-      gap: 16px;
-      position: sticky;
-      top: 24px;
-      max-height: calc(100vh - 48px);
+      height: 100vh;
+      border-left: 1px solid var(--border);
+      background: #fbfcfe;
     }
 
     .chat-shell {
@@ -197,30 +265,27 @@
       flex-direction: column;
       min-height: 0;
       height: 100%;
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 18px;
-      box-shadow: var(--shadow-sm);
+      background: #fbfcfe;
       overflow: hidden;
     }
 
     .chat-header {
-      padding: 20px 22px 16px;
+      padding: 18px 18px 14px;
       border-bottom: 1px solid var(--border);
-      background: linear-gradient(180deg, #ffffff 0%, #fafcfc 100%);
+      background: #ffffff;
     }
 
     .chat-title {
       margin: 0;
-      font-size: 18px;
+      font-size: 15px;
       font-weight: 700;
       color: #252525;
     }
 
     .chat-subtitle {
-      margin: 6px 0 0;
-      font-size: 13px;
-      line-height: 1.5;
+      margin: 4px 0 0;
+      font-size: 12px;
+      line-height: 1.45;
       color: #6a7384;
     }
 
@@ -228,13 +293,13 @@
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      padding: 6px 10px;
+      padding: 5px 9px;
       border-radius: 999px;
       background: var(--primary-soft);
       color: var(--primary-strong);
-      font-size: 12px;
+      font-size: 11px;
       font-weight: 600;
-      margin-top: 12px;
+      margin-top: 10px;
     }
 
     .chat-status::before {
@@ -248,33 +313,33 @@
 
     .chat-body {
       flex: 1;
-      min-height: 320px;
+      min-height: 0;
       overflow-y: auto;
-      padding: 18px;
-      background: #fbfcfd;
+      padding: 14px;
+      background: #fbfcfe;
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: 10px;
     }
 
     .chat-empty {
       border: 1px dashed rgba(33, 129, 136, 0.16);
       background: rgba(33, 129, 136, 0.04);
-      border-radius: 14px;
-      padding: 16px;
+      border-radius: 10px;
+      padding: 12px;
       color: #5c6678;
-      font-size: 13px;
-      line-height: 1.6;
+      font-size: 12px;
+      line-height: 1.5;
     }
 
     .message {
       display: flex;
       flex-direction: column;
-      gap: 6px;
+      gap: 5px;
     }
 
     .message-meta {
-      font-size: 11px;
+      font-size: 10px;
       font-weight: 600;
       letter-spacing: 0.03em;
       text-transform: uppercase;
@@ -283,10 +348,10 @@
 
     .message-bubble {
       max-width: 100%;
-      border-radius: 14px;
-      padding: 12px 14px;
-      font-size: 14px;
-      line-height: 1.6;
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-size: 12px;
+      line-height: 1.5;
       white-space: pre-wrap;
       word-break: break-word;
       box-shadow: var(--shadow-sm);
@@ -314,33 +379,40 @@
       display: flex;
       align-items: center;
       flex-wrap: wrap;
-      gap: 8px;
-      margin-top: 8px;
+      gap: 6px;
+      margin-top: 6px;
     }
 
     .chat-composer {
-      padding: 16px 18px 18px;
+      padding: 12px 14px 14px;
       border-top: 1px solid var(--border);
       background: white;
+      flex-shrink: 0;
     }
 
     .chat-form {
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: 8px;
+    }
+
+    .chat-input-shell {
+      position: relative;
     }
 
     .chat-input {
       width: 100%;
-      min-height: 108px;
+      min-height: 64px;
+      max-height: 140px;
       resize: vertical;
       border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 14px 14px 12px;
+      border-radius: 10px;
+      padding: 10px 42px 10px 12px;
       background: white;
       color: #252525;
       font: inherit;
-      line-height: 1.6;
+      font-size: 12px;
+      line-height: 1.45;
       box-sizing: border-box;
       transition: border-color 0.18s ease, box-shadow 0.18s ease;
     }
@@ -351,118 +423,111 @@
       box-shadow: 0 0 0 4px rgba(33, 129, 136, 0.12);
     }
 
-    .chat-controls {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-    }
-
-    .chat-caption {
-      font-size: 12px;
-      color: #7b8495;
-      line-height: 1.5;
-    }
-
-    .chat-button {
-      appearance: none;
+    .chat-send-icon {
+      position: absolute;
+      right: 9px;
+      bottom: 9px;
+      width: 26px;
+      height: 26px;
       border: none;
-      border-radius: 12px;
+      border-radius: 8px;
       background: linear-gradient(180deg, var(--primary) 0%, var(--primary-strong) 100%);
       color: white;
-      font: inherit;
-      font-weight: 600;
-      padding: 11px 18px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
       cursor: pointer;
-      box-shadow: var(--shadow-sm);
       transition: transform 0.18s ease, opacity 0.18s ease;
+      box-shadow: var(--shadow-sm);
     }
 
-    .chat-button:hover:not(:disabled) {
+    .chat-send-icon:hover:not(:disabled) {
       transform: translateY(-1px);
     }
 
-    .chat-button:disabled {
+    .chat-send-icon:disabled {
       cursor: not-allowed;
       opacity: 0.6;
     }
 
+    .chat-controls {
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+    }
+
+    .chat-caption {
+      font-size: 11px;
+      color: #7b8495;
+      line-height: 1.4;
+    }
+
     .hero-panel {
-      background: radial-gradient(circle at top, rgba(33, 129, 136, 0.08), transparent 48%), var(--background);
-      border: 1px solid var(--border);
-      border-radius: 18px;
-      box-shadow: var(--shadow-sm);
-      padding: 28px 32px;
-      margin-bottom: 24px;
+      background: transparent;
+      border: none;
+      border-radius: 0;
+      box-shadow: none;
+      padding: 0 0 10px;
+      margin-bottom: 8px;
     }
 
     .eyebrow {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 6px 12px;
-      border: 1px solid var(--border);
-      border-radius: 999px;
-      background: var(--background);
-      color: #5c6678;
-      font-size: 12px;
-      font-weight: 600;
-      margin-bottom: 16px;
+      display: none;
     }
 
     .page-title {
       margin: 0;
-      font-size: 40px;
-      line-height: 1.1;
+      font-size: 18px;
+      line-height: 1.2;
       font-weight: 700;
-      letter-spacing: -0.03em;
+      letter-spacing: -0.02em;
       color: #31343a;
     }
 
     .page-subtitle {
-      margin: 10px 0 0;
-      max-width: 820px;
+      margin: 4px 0 0;
+      max-width: 560px;
       color: #687385;
-      font-size: 16px;
-      line-height: 1.6;
+      font-size: 12px;
+      line-height: 1.45;
       font-weight: 500;
     }
 
     .content-card {
       background: var(--card);
       border: 1px solid var(--border);
-      border-radius: 16px;
+      border-radius: 12px;
       box-shadow: var(--shadow-sm);
     }
 
     .card-section {
-      padding: 22px 24px;
+      padding: 14px 16px;
     }
 
     .card-title {
-      font-size: 17px;
+      font-size: 14px;
       font-weight: 600;
       color: #252525;
       margin: 0;
     }
 
     .card-description {
-      font-size: 13px;
+      font-size: 11px;
       color: #6a7384;
-      margin: 4px 0 0;
+      margin: 2px 0 0;
     }
 
     .metric-card {
       background: var(--card);
       border: 1px solid var(--border);
-      border-radius: 16px;
+      border-radius: 12px;
       box-shadow: var(--shadow-sm);
-      padding: 20px;
+      padding: 14px;
     }
 
     .metric-label {
-      margin: 0 0 8px;
-      font-size: 12px;
+      margin: 0 0 6px;
+      font-size: 10px;
       color: #7b8495;
       text-transform: uppercase;
       letter-spacing: 0.05em;
@@ -471,15 +536,15 @@
 
     .metric-value {
       margin: 0;
-      font-size: 30px;
+      font-size: 22px;
       line-height: 1;
       font-weight: 700;
       color: #252525;
     }
 
     .metric-meta {
-      margin-top: 8px;
-      font-size: 13px;
+      margin-top: 6px;
+      font-size: 11px;
       color: #687385;
       font-weight: 500;
     }
@@ -491,7 +556,8 @@
     .table-clean {
       width: 100%;
       border-collapse: collapse;
-      font-size: 14px;
+      font-size: 12px;
+      table-layout: fixed;
     }
 
     .table-clean thead {
@@ -499,31 +565,112 @@
     }
 
     .table-clean th {
-      padding: 16px 24px;
+      padding: 10px 14px;
       text-align: left;
       color: #515a69;
       font-weight: 600;
-      font-size: 14px;
+      font-size: 12px;
       border-bottom: 1px solid rgba(37, 37, 37, 0.08);
     }
 
     .table-clean td {
-      padding: 16px 24px;
+      padding: 10px 14px;
       color: #3d4656;
       border-bottom: 1px solid rgba(37, 37, 37, 0.06);
       vertical-align: top;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     .table-clean tbody tr:hover {
       background: rgba(33, 129, 136, 0.03);
     }
 
+    .table-row-action {
+      cursor: pointer;
+      transition: background 0.16s ease;
+    }
+
+    .table-row-action.is-active {
+      background: rgba(33, 129, 136, 0.06);
+    }
+
+    .table-cell-clamp {
+      display: -webkit-box;
+      -webkit-box-orient: vertical;
+      -webkit-line-clamp: 2;
+      overflow: hidden;
+      line-height: 1.45;
+    }
+
+    .trace-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 320px;
+      gap: 14px;
+      align-items: start;
+    }
+
+    .trace-table-shell {
+      min-width: 0;
+    }
+
+    .trace-detail {
+      position: sticky;
+      top: 14px;
+    }
+
+    .trace-detail-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .trace-detail-item {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px;
+      background: #fbfcfe;
+    }
+
+    .trace-detail-label {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #8a93a5;
+      margin-bottom: 4px;
+      font-weight: 600;
+    }
+
+    .trace-detail-value {
+      font-size: 12px;
+      line-height: 1.45;
+      color: #31343a;
+      word-break: break-word;
+    }
+
+    .trace-detail-block + .trace-detail-block {
+      margin-top: 12px;
+    }
+
+    .trace-detail-body {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: #fbfcfe;
+      padding: 10px;
+      font-size: 12px;
+      line-height: 1.5;
+      color: #31343a;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
     .badge {
       display: inline-flex;
       align-items: center;
-      padding: 4px 10px;
+      padding: 3px 8px;
       border-radius: 999px;
-      font-size: 12px;
+      font-size: 11px;
       font-weight: 600;
       line-height: 1.2;
       border: 1px solid transparent;
@@ -538,7 +685,7 @@
     .badge-slate { background: #f2f4f7; color: #5c6678; border-color: rgba(92, 102, 120, 0.12); }
 
     .score-bar {
-      height: 8px;
+      height: 6px;
       border-radius: 999px;
       background: #e8ecf1;
       overflow: hidden;
@@ -552,8 +699,8 @@
     }
 
     .info-panel {
-      border-radius: 16px;
-      padding: 20px 24px;
+      border-radius: 12px;
+      padding: 14px 16px;
       border: 1px solid var(--border);
       background: linear-gradient(180deg, #ffffff 0%, #fafbfc 100%);
     }
@@ -567,33 +714,30 @@
       font-family: 'SFMono-Regular', 'Menlo', 'Consolas', monospace;
     }
 
-    .chat-placeholder {
-      min-height: 460px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 32px;
-    }
-
     @media (max-width: 1100px) {
-      .sidebar { width: 216px; }
-      .page-title { font-size: 32px; }
-      .chat-rail { width: 340px; }
+      .sidebar { width: 196px; }
+      .chat-rail { width: 320px; }
+      .app-shell.sidebar-collapsed .sidebar { width: 64px; }
+      .trace-layout { grid-template-columns: 1fr; }
+      .trace-detail { position: static; }
     }
 
     @media (max-width: 900px) {
-      .app-shell { display: block; }
+      .app-shell { display: block; height: auto; }
       .sidebar { width: 100%; min-height: auto; }
-      .main-panel {
-        display: block;
-        padding: 16px;
-      }
+      .main-panel { display: block; overflow: visible; }
+      .sidebar-toggle { display: none; }
       .chat-rail {
         width: 100%;
-        position: static;
-        max-height: none;
-        margin-top: 20px;
+        height: auto;
+        border-left: none;
+        border-top: 1px solid var(--border);
       }
+      .page-wrap {
+        height: auto;
+        padding: 12px;
+      }
+      .trace-detail-grid { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -601,40 +745,58 @@
   <div class="app-shell">
     <aside class="sidebar">
       <div class="brand-lockup">
-        <div class="brand-mark">L</div>
-        <div>
+        <div class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none">
+            <path d="M12 3.5 8.2 8.1 12 12l3.8-3.9L12 3.5Z" fill="white"/>
+            <path d="M20.5 12 15.9 8.2 12 12l3.9 3.8 4.6-3.8Z" fill="white" opacity="0.92"/>
+            <path d="M12 20.5 15.8 15.9 12 12l-3.8 3.9L12 20.5Z" fill="white" opacity="0.84"/>
+            <path d="M3.5 12 8.1 15.8 12 12 8.1 8.2 3.5 12Z" fill="white" opacity="0.76"/>
+          </svg>
+        </div>
+        <div class="brand-copy">
           <p class="brand-title">Lyzr Evalops</p>
           <p class="brand-subtitle">Evaluation command center</p>
         </div>
+        <button class="sidebar-toggle" id="sidebarToggle" type="button" aria-label="Toggle sidebar">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.9" d="M15 18l-6-6 6-6"/>
+          </svg>
+        </button>
       </div>
 
       <div class="nav-group">
         <div class="nav-label">Workspace</div>
-        <a href="/" class="{{ 'nav-active' if active == 'home' else 'nav-link' }}">
-          <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.9" d="M3 12l2-2 7-7 7 7 2 2M5 10v10a1 1 0 001 1h3m10-11v10a1 1 0 01-1 1h-3m-6 0h6"/></svg>
-          Overview
-        </a>
         <a href="/traces" class="{{ 'nav-active' if active == 'traces' else 'nav-link' }}">
           <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.9" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a3 3 0 006 0"/></svg>
-          Traces
+          <span class="nav-text">Traces</span>
         </a>
         <a href="/datasets" class="{{ 'nav-active' if active == 'datasets' else 'nav-link' }}">
           <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.9" d="M4 7c0 2.21 3.58 4 8 4s8-1.79 8-4M4 12c0 2.21 3.58 4 8 4s8-1.79 8-4M4 17c0 2.21 3.58 4 8 4s8-1.79 8-4M4 7c0-2.21 3.58-4 8-4s8 1.79 8 4"/></svg>
-          Datasets
+          <span class="nav-text">Datasets</span>
         </a>
-        <a href="/experiments" class="{{ 'nav-active' if active == 'experiments' else 'nav-link' }}">
+        <a href="/evaluations" class="{{ 'nav-active' if active == 'evaluations' else 'nav-link' }}">
           <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.9" d="M9 3h6m-5 0v5.17a2 2 0 01-.59 1.41l-5 5A2 2 0 005.83 18h12.34a2 2 0 001.41-3.41l-5-5A2 2 0 0114 8.17V3"/></svg>
-          Experiments
+          <span class="nav-text">Evaluations</span>
         </a>
-        <a href="/comparison" class="{{ 'nav-active' if active == 'comparison' else 'nav-link' }}">
-          <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.9" d="M8 7h3v10H8zM13 10h3v7h-3zM3 4h18v16H3z"/></svg>
-          Comparison
+        <a href="/prompts" class="{{ 'nav-active' if active == 'prompts' else 'nav-link' }}">
+          <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.9" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+          <span class="nav-text">Prompts</span>
+        </a>
+      </div>
+
+      <div class="nav-group">
+        <div class="nav-label">System</div>
+        <a href="/" class="{{ 'nav-active' if active == 'home' else 'nav-link' }}">
+          <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.9" d="M3 12l2-2 7-7 7 7 2 2M5 10v10a1 1 0 001 1h3m10-11v10a1 1 0 01-1 1h-3m-6 0h6"/></svg>
+          <span class="nav-text">Overview</span>
         </a>
       </div>
 
       <div class="sidebar-footer">
-        <div>Lyzr Evalops</div>
-        <div>Phase 3 interface</div>
+        <div class="sidebar-footer-copy">
+          <div>Lyzr Evalops</div>
+          <div>Phase 3 interface</div>
+        </div>
       </div>
     </aside>
 
@@ -644,38 +806,49 @@
           {% block content %}{% endblock %}
         </div>
       </div>
+      {% block chat_rail %}
       <aside class="chat-rail">
         <section class="chat-shell">
           <div class="chat-header">
             <h2 class="chat-title">Agent Workspace</h2>
-            <p class="chat-subtitle">Interact with the active agent while you review traces, datasets, experiments, and release decisions.</p>
+            <p class="chat-subtitle">Chat with the connected agent.</p>
             <div class="chat-status">Agent connected</div>
           </div>
           <div class="chat-body" id="chatBody">
             <div class="chat-empty" id="chatEmpty">
-              Start a conversation to inspect the active agent directly from the dashboard. Responses will surface trace identifiers and execution metadata when available.
+              Start a conversation from here.
             </div>
           </div>
           <div class="chat-composer">
             <form class="chat-form" id="chatForm">
-              <textarea
-                id="chatInput"
-                class="chat-input"
-                name="message"
-                placeholder="Ask the agent about a trace, a dataset, a release decision, or a product query."
-                required
-              ></textarea>
+              <div class="chat-input-shell">
+                <textarea
+                  id="chatInput"
+                  class="chat-input"
+                  name="message"
+                  placeholder="Ask the agent a question."
+                  required
+                ></textarea>
+                <button class="chat-send-icon" id="chatSubmit" type="submit" aria-label="Send message">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M22 2 11 13"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m22 2-7 20-4-9-9-4 20-7Z"/>
+                  </svg>
+                </button>
+              </div>
               <div class="chat-controls">
-                <div class="chat-caption">This panel uses the live <span class="mono-text">/api/chat</span> backend endpoint.</div>
-                <button class="chat-button" id="chatSubmit" type="submit">Send</button>
+                <div class="chat-caption">Live backend chat</div>
               </div>
             </form>
           </div>
         </section>
       </aside>
+      {% endblock %}
     </main>
   </div>
   <script>
+    const appShell = document.querySelector('.app-shell');
+    const sidebarToggle = document.getElementById('sidebarToggle');
     const chatForm = document.getElementById('chatForm');
     const chatInput = document.getElementById('chatInput');
     const chatBody = document.getElementById('chatBody');
@@ -740,7 +913,7 @@
       appendMessage('user', message);
       chatInput.value = '';
       chatSubmit.disabled = true;
-      chatSubmit.textContent = 'Sending';
+      chatSubmit.style.opacity = '0.6';
 
       try {
         const response = await fetch('/api/chat', {
@@ -767,9 +940,24 @@
         appendMessage('system', error.message || 'Unable to reach the agent.');
       } finally {
         chatSubmit.disabled = false;
-        chatSubmit.textContent = 'Send';
+        chatSubmit.style.opacity = '1';
       }
     });
+
+    const savedSidebarState = window.localStorage.getItem('lyzr-evalops-sidebar');
+    if (savedSidebarState === 'collapsed') {
+      appShell.classList.add('sidebar-collapsed');
+    }
+
+    if (sidebarToggle) {
+      sidebarToggle.addEventListener('click', () => {
+        appShell.classList.toggle('sidebar-collapsed');
+        window.localStorage.setItem(
+          'lyzr-evalops-sidebar',
+          appShell.classList.contains('sidebar-collapsed') ? 'collapsed' : 'expanded'
+        );
+      });
+    }
   </script>
 </body>
 </html>

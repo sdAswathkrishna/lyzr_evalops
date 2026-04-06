@@ -1,30 +1,731 @@
 {% extends "base.html" %}
-{% block title %}Agent Chat{% endblock %}
+{% block title %}Chat + Live Traces{% endblock %}
+
+{# Suppress the default right rail — this page has its own full layout #}
+{% block chat_rail %}{% endblock %}
+
 {% block content %}
+<style>
+  /* ── Chat page overrides: full-width two-panel layout ─────────────────── */
+  .chat-page-grid {
+    display: grid;
+    grid-template-columns: 1fr 380px;
+    gap: 14px;
+    height: calc(100vh - 28px);
+    min-height: 0;
+  }
 
-<section class="hero-panel">
-  <div class="eyebrow">Live interaction</div>
-  <h1 class="page-title">Agent Chat</h1>
-  <p class="page-subtitle">The backend chat endpoint is live. This page is prepared as the next surface for trace-linked conversational review.</p>
-</section>
+  /* Left: trace panel */
+  .trace-panel {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+  }
 
-<section class="content-card">
-  <div class="chat-placeholder">
-    <div class="max-w-xl text-center">
-      <div class="w-16 h-16 rounded-2xl mx-auto mb-6 flex items-center justify-center" style="background: linear-gradient(180deg, var(--primary) 0%, var(--primary-strong) 100%); box-shadow: var(--shadow-md);">
-        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M8 10h.01M12 10h.01M16 10h.01M21 12a9 9 0 11-3.51-7.09L21 3v9z"/>
-        </svg>
+  .trace-panel-header {
+    padding: 14px 16px 12px;
+    border-bottom: 1px solid var(--border);
+    background: white;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+  }
+
+  .trace-panel-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: #252525;
+    margin: 0;
+  }
+
+  .trace-panel-sub {
+    font-size: 11px;
+    color: #6a7384;
+    margin: 2px 0 0;
+  }
+
+  .refresh-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    color: #7b8495;
+    font-weight: 500;
+  }
+
+  .refresh-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #22c55e;
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  .trace-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .trace-card {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: #fafbfc;
+    padding: 10px 12px;
+    transition: border-color 0.18s ease, background 0.18s ease;
+  }
+
+  .trace-card:hover {
+    border-color: rgba(33, 129, 136, 0.3);
+    background: rgba(33, 129, 136, 0.02);
+  }
+
+  .trace-card-header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 7px;
+    flex-wrap: wrap;
+  }
+
+  .trace-card-time {
+    font-size: 10px;
+    color: #8a93a5;
+    font-weight: 500;
+    margin-left: auto;
+  }
+
+  .trace-card-q {
+    font-size: 12px;
+    font-weight: 600;
+    color: #31343a;
+    margin: 0 0 4px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    line-height: 1.4;
+  }
+
+  .trace-card-a {
+    font-size: 11.5px;
+    color: #687385;
+    margin: 0 0 8px;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    line-height: 1.45;
+  }
+
+  .trace-card-actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  .btn-add-dataset {
+    appearance: none;
+    border: 1px solid rgba(33, 129, 136, 0.3);
+    border-radius: 8px;
+    background: rgba(33, 129, 136, 0.06);
+    color: var(--primary-strong);
+    font: inherit;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 4px 10px;
+    cursor: pointer;
+    transition: background 0.18s ease, border-color 0.18s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .btn-add-dataset:hover:not(:disabled) {
+    background: rgba(33, 129, 136, 0.12);
+    border-color: rgba(33, 129, 136, 0.5);
+  }
+
+  .btn-add-dataset:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .btn-feedback {
+    appearance: none;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: white;
+    color: #5c6678;
+    font-size: 13px;
+    width: 28px;
+    height: 26px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.18s ease, border-color 0.18s ease;
+    padding: 0;
+  }
+
+  .btn-feedback:hover { background: #f1f3f6; }
+
+  .btn-feedback.active-up {
+    background: var(--success-bg);
+    border-color: rgba(31, 122, 61, 0.25);
+    color: var(--success-text);
+  }
+
+  .btn-feedback.active-down {
+    background: var(--danger-bg);
+    border-color: rgba(180, 35, 24, 0.25);
+    color: var(--danger-text);
+  }
+
+  .in-dataset-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 10.5px;
+    font-weight: 600;
+    color: var(--success-text);
+    background: var(--success-bg);
+    border: 1px solid rgba(31, 122, 61, 0.15);
+    border-radius: 6px;
+    padding: 3px 8px;
+  }
+
+  .trace-empty {
+    text-align: center;
+    padding: 32px 16px;
+    color: #7b8495;
+    font-size: 12px;
+    line-height: 1.6;
+  }
+
+  .dataset-select {
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    background: white;
+    color: #3d4656;
+    font: inherit;
+    font-size: 11px;
+    padding: 3px 6px;
+    cursor: pointer;
+    max-width: 130px;
+  }
+
+  /* Right: Lyzr ADK chat panel */
+  .lyzr-chat-panel {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+  }
+
+  .lyzr-chat-header {
+    padding: 14px 16px 12px;
+    border-bottom: 1px solid var(--border);
+    background: white;
+    flex-shrink: 0;
+  }
+
+  .lyzr-chat-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: #252525;
+    margin: 0 0 2px;
+  }
+
+  .lyzr-chat-sub {
+    font-size: 11px;
+    color: #6a7384;
+    margin: 0;
+  }
+
+  .prompt-version-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    margin-top: 8px;
+    padding: 4px 9px;
+    background: var(--primary-soft);
+    border: 1px solid rgba(33, 129, 136, 0.15);
+    border-radius: 8px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--primary-strong);
+  }
+
+  .lyzr-chat-body {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    background: #fbfcfe;
+  }
+
+  .lyzr-chat-empty {
+    border: 1px dashed rgba(33, 129, 136, 0.18);
+    background: rgba(33, 129, 136, 0.03);
+    border-radius: 10px;
+    padding: 16px;
+    color: #6a7384;
+    font-size: 12px;
+    line-height: 1.6;
+  }
+
+  .lyzr-chat-empty strong {
+    display: block;
+    font-size: 12.5px;
+    color: #3d4656;
+    margin-bottom: 4px;
+  }
+
+  .lyzr-msg {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .lyzr-msg-label {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: #8a93a5;
+  }
+
+  .lyzr-msg-bubble {
+    padding: 9px 12px;
+    border-radius: 10px;
+    font-size: 12px;
+    line-height: 1.5;
+    white-space: pre-wrap;
+    word-break: break-word;
+    max-width: 100%;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .lyzr-msg-user .lyzr-msg-bubble {
+    background: var(--primary);
+    color: white;
+    align-self: flex-end;
+  }
+
+  .lyzr-msg-agent .lyzr-msg-bubble {
+    background: white;
+    color: #31343a;
+    border: 1px solid rgba(37, 37, 37, 0.08);
+  }
+
+  .lyzr-msg-system .lyzr-msg-bubble {
+    background: #f8fafc;
+    color: #5c6678;
+    border: 1px solid rgba(37, 37, 37, 0.08);
+    font-size: 11px;
+  }
+
+  .lyzr-msg-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-top: 4px;
+  }
+
+  .lyzr-chat-composer {
+    padding: 10px 12px 12px;
+    border-top: 1px solid var(--border);
+    background: white;
+    flex-shrink: 0;
+  }
+
+  .lyzr-chat-form {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .lyzr-input-shell {
+    position: relative;
+  }
+
+  .lyzr-input {
+    width: 100%;
+    min-height: 60px;
+    max-height: 130px;
+    resize: vertical;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 9px 40px 9px 11px;
+    background: white;
+    color: #252525;
+    font: inherit;
+    font-size: 12px;
+    line-height: 1.45;
+    box-sizing: border-box;
+    transition: border-color 0.18s ease, box-shadow 0.18s ease;
+  }
+
+  .lyzr-input:focus {
+    outline: none;
+    border-color: rgba(33, 129, 136, 0.45);
+    box-shadow: 0 0 0 4px rgba(33, 129, 136, 0.12);
+  }
+
+  .lyzr-send-btn {
+    position: absolute;
+    right: 8px;
+    bottom: 8px;
+    width: 26px;
+    height: 26px;
+    border: none;
+    border-radius: 8px;
+    background: linear-gradient(180deg, var(--primary) 0%, var(--primary-strong) 100%);
+    color: white;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: transform 0.18s ease, opacity 0.18s ease;
+    box-shadow: var(--shadow-sm);
+    padding: 0;
+  }
+
+  .lyzr-send-btn:hover:not(:disabled) { transform: translateY(-1px); }
+  .lyzr-send-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .lyzr-caption {
+    font-size: 10.5px;
+    color: #8a93a5;
+  }
+</style>
+
+<div class="chat-page-grid">
+
+  <!-- ── Left: Live Lyzr ADK Traces ────────────────────────────────────── -->
+  <div class="trace-panel">
+    <div class="trace-panel-header">
+      <div>
+        <h2 class="trace-panel-title">Live Lyzr ADK Traces</h2>
+        <p class="trace-panel-sub">Every chat message is traced here in real time.</p>
       </div>
-      <h2 class="text-2xl font-semibold text-[#252525] mb-3">Chat workspace is ready for UI implementation</h2>
-      <p class="text-[#6a7384] text-sm leading-7 mb-4">
-        The conversational backend remains available at <span class="mono-text">POST /api/chat</span>. This surface can be expanded next into a trace-aware operator workflow.
-      </p>
-      <div class="inline-flex items-center px-4 py-2 rounded-full border border-[var(--border)] bg-white text-sm text-[#536072]">
-        Available datasets: {{ datasets|length }}
+      <div>
+        <div class="refresh-indicator">
+          <span class="refresh-dot"></span>
+          <span id="refreshLabel">Auto-refreshing</span>
+        </div>
+      </div>
+    </div>
+    <div class="trace-list" id="traceList">
+      <div class="trace-empty" id="traceEmpty">
+        No Lyzr ADK traces yet.<br>Send a message to see traces appear here.
       </div>
     </div>
   </div>
-</section>
 
+  <!-- ── Right: Lyzr ADK Chat ───────────────────────────────────────────── -->
+  <div class="lyzr-chat-panel">
+    <div class="lyzr-chat-header">
+      <h2 class="lyzr-chat-title">Lyzr ADK Agent</h2>
+      <p class="lyzr-chat-sub">Powered by lyzr_agent_api — traces saved automatically.</p>
+      <div class="prompt-version-tag" id="activePromptTag">
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a3 3 0 006 0"/></svg>
+        Active:
+        {% if active_prompt %}
+          {{ active_prompt.version }} — {{ active_prompt.name }}
+        {% else %}
+          v1 — Initial Prompt
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="lyzr-chat-body" id="lyzrChatBody">
+      <div class="lyzr-chat-empty" id="lyzrChatEmpty">
+        <strong>Chat with the Lyzr ADK agent</strong>
+        Every message is traced and appears in the left panel.<br>
+        Traces can be promoted into evaluation datasets with one click.
+      </div>
+    </div>
+
+    <div class="lyzr-chat-composer">
+      <form class="lyzr-chat-form" id="lyzrChatForm">
+        <div class="lyzr-input-shell">
+          <textarea
+            id="lyzrInput"
+            class="lyzr-input"
+            placeholder="Ask a support question..."
+            required
+          ></textarea>
+          <button class="lyzr-send-btn" id="lyzrSend" type="submit" aria-label="Send">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M22 2 11 13"/>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="m22 2-7 20-4-9-9-4 20-7Z"/>
+            </svg>
+          </button>
+        </div>
+        <div class="chat-controls">
+          <span class="lyzr-caption">Traces auto-saved to SQLite → promote any trace to a dataset</span>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ── State ──────────────────────────────────────────────────────────────────
+  const datasets = {{ datasets | tojson }};
+  let knownTraceIds  = new Set();
+  let pendingTraceId = null;   // last trace from Lyzr chat, used to highlight in list
+
+  // ── Trace panel ───────────────────────────────────────────────────────────
+
+  function formatTime(ts) {
+    if (!ts) return '';
+    try {
+      const d = new Date(ts + 'Z');
+      return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    } catch { return ts.slice(11, 19) || ''; }
+  }
+
+  function buildDatasetSelect() {
+    if (!datasets || datasets.length === 0) {
+      return '<span style="font-size:11px;color:#8a93a5;">No datasets</span>';
+    }
+    let opts = datasets.map(d =>
+      `<option value="${d.id}">${d.name.length > 18 ? d.name.slice(0,18)+'…' : d.name}</option>`
+    ).join('');
+    return `<select class="dataset-select" aria-label="Select dataset">${opts}</select>`;
+  }
+
+  function renderTraceCard(trace) {
+    const timeStr   = formatTime(trace.timestamp);
+    const latency   = trace.latency_ms != null ? `${Math.round(trace.latency_ms)} ms` : '';
+    const version   = trace.agent_version || '';
+    const isNew     = trace.id === pendingTraceId;
+
+    const card = document.createElement('div');
+    card.className = 'trace-card';
+    card.dataset.traceId = trace.id;
+    if (isNew) card.style.borderColor = 'rgba(33,129,136,0.5)';
+
+    const inputTrunc  = (trace.input  || '').slice(0, 140);
+    const outputTrunc = (trace.output || '').slice(0, 240);
+
+    card.innerHTML = `
+      <div class="trace-card-header">
+        ${version ? `<span class="badge badge-teal">${version}</span>` : ''}
+        ${latency  ? `<span class="badge badge-slate">${latency}</span>`  : ''}
+        <span class="trace-card-time">${timeStr}</span>
+      </div>
+      <p class="trace-card-q">${escHtml(inputTrunc)}${trace.input && trace.input.length > 140 ? '…' : ''}</p>
+      <p class="trace-card-a">${escHtml(outputTrunc)}${trace.output && trace.output.length > 240 ? '…' : ''}</p>
+      <div class="trace-card-actions" id="actions-${trace.id}">
+        ${buildDatasetSelect()}
+        <button class="btn-add-dataset" data-id="${trace.id}" title="Promote trace to dataset">
+          + Add to Dataset
+        </button>
+        <button class="btn-feedback active-up" data-id="${trace.id}" data-score="1" title="Good response">👍</button>
+        <button class="btn-feedback" data-id="${trace.id}" data-score="0" title="Bad response">👎</button>
+      </div>
+    `;
+
+    // Add to dataset
+    card.querySelector('.btn-add-dataset').addEventListener('click', async (e) => {
+      const btn = e.currentTarget;
+      const sel = card.querySelector('.dataset-select');
+      const datasetId   = sel ? sel.value : (datasets[0] && datasets[0].id);
+      const datasetName = sel
+        ? (datasets.find(d => d.id === sel.value) || {}).name || 'dataset'
+        : (datasets[0] && datasets[0].name) || 'dataset';
+      if (!datasetId) return;
+      btn.disabled = true;
+      btn.textContent = 'Adding…';
+      try {
+        const r = await fetch(`/api/traces/${trace.id}/add-to-dataset`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ dataset_name: datasetName }),
+        });
+        const data = await r.json();
+        if (r.ok) {
+          const actionsDiv = document.getElementById(`actions-${trace.id}`);
+          actionsDiv.innerHTML = `<span class="in-dataset-badge">✓ In dataset: ${escHtml(datasetName)}</span>`;
+        } else {
+          btn.textContent = data.detail || 'Error';
+          btn.disabled = false;
+        }
+      } catch {
+        btn.textContent = 'Failed';
+        btn.disabled = false;
+      }
+    });
+
+    // Feedback buttons
+    card.querySelectorAll('.btn-feedback').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const score = parseFloat(btn.dataset.score);
+        try {
+          await fetch(`/api/traces/${trace.id}/feedback`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ score, key: 'user_feedback' }),
+          });
+          card.querySelectorAll('.btn-feedback').forEach(b => {
+            b.classList.remove('active-up', 'active-down');
+          });
+          btn.classList.add(score === 1 ? 'active-up' : 'active-down');
+        } catch { /* ignore */ }
+      });
+    });
+
+    return card;
+  }
+
+  async function refreshTraces() {
+    try {
+      const r = await fetch('/api/traces?platform=lyzr&limit=30');
+      if (!r.ok) return;
+      const traces = await r.json();
+
+      const list = document.getElementById('traceList');
+      const empty = document.getElementById('traceEmpty');
+
+      if (traces.length === 0) return;
+      if (empty) empty.remove();
+
+      // Prepend new traces (newest first)
+      const newTraces = traces.filter(t => !knownTraceIds.has(t.id));
+      newTraces.reverse();  // oldest of the new ones first, so prepending keeps newest on top
+      newTraces.forEach(t => {
+        knownTraceIds.add(t.id);
+        list.insertBefore(renderTraceCard(t), list.firstChild);
+      });
+
+      // If all traces are first load, reverse to show newest at top
+      if (knownTraceIds.size === traces.length && list.children.length === traces.length) {
+        // already handled above
+      }
+    } catch { /* ignore refresh errors */ }
+  }
+
+  // ── Lyzr ADK chat ─────────────────────────────────────────────────────────
+
+  function escHtml(str) {
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  function appendLyzrMsg(role, text, meta = {}) {
+    const empty = document.getElementById('lyzrChatEmpty');
+    if (empty) empty.remove();
+
+    const body = document.getElementById('lyzrChatBody');
+    const wrap = document.createElement('div');
+    wrap.className = `lyzr-msg lyzr-msg-${role}`;
+
+    const label = document.createElement('div');
+    label.className = 'lyzr-msg-label';
+    label.textContent = role === 'user' ? 'You' : role === 'agent' ? 'Lyzr ADK' : 'System';
+    wrap.appendChild(label);
+
+    const bubble = document.createElement('div');
+    bubble.className = 'lyzr-msg-bubble';
+    bubble.textContent = text;
+    wrap.appendChild(bubble);
+
+    if (meta.trace_id || meta.latency_ms || meta.prompt_version) {
+      const badges = document.createElement('div');
+      badges.className = 'lyzr-msg-badges';
+      if (meta.trace_id) {
+        const b = document.createElement('span');
+        b.className = 'badge badge-teal mono-text';
+        b.textContent = `Trace ${String(meta.trace_id).slice(0,8)}…`;
+        badges.appendChild(b);
+      }
+      if (meta.latency_ms != null) {
+        const b = document.createElement('span');
+        b.className = 'badge badge-slate';
+        b.textContent = `${Math.round(meta.latency_ms)} ms`;
+        badges.appendChild(b);
+      }
+      if (meta.prompt_version) {
+        const b = document.createElement('span');
+        b.className = 'badge badge-blue';
+        b.textContent = meta.prompt_version;
+        badges.appendChild(b);
+      }
+      wrap.appendChild(badges);
+    }
+
+    body.appendChild(wrap);
+    body.scrollTop = body.scrollHeight;
+  }
+
+  document.getElementById('lyzrChatForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const input = document.getElementById('lyzrInput');
+    const send  = document.getElementById('lyzrSend');
+    const msg   = input.value.trim();
+    if (!msg) return;
+
+    appendLyzrMsg('user', msg);
+    input.value = '';
+    send.disabled = true;
+
+    try {
+      const r = await fetch('/api/chat/lyzr', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: msg, user_id: 'chat-demo' }),
+      });
+      const data = await r.json();
+      if (!r.ok) throw new Error(data.detail || 'Request failed');
+
+      pendingTraceId = data.trace_id;
+      appendLyzrMsg('agent', data.response || 'No response.', {
+        trace_id:       data.trace_id,
+        latency_ms:     data.latency_ms,
+        prompt_version: data.prompt_version,
+      });
+
+      // Refresh traces immediately after a message
+      await refreshTraces();
+      pendingTraceId = null;
+    } catch (err) {
+      appendLyzrMsg('system', err.message || 'Could not reach the agent.');
+    } finally {
+      send.disabled = false;
+    }
+  });
+
+  // Initial load + auto-refresh every 4s
+  refreshTraces();
+  setInterval(refreshTraces, 4000);
+</script>
 {% endblock %}

@@ -125,11 +125,14 @@ class SimpleLyzrAgent:
 
     Falls back to direct OpenAI call if the Lyzr API is unavailable, ensuring
     the demo always produces output.
+
+    Pass `system_prompt` explicitly to override the versioned default — used
+    when loading a DB-managed prompt for the live chat demo.
     """
 
-    def __init__(self, version: str = "v1"):
+    def __init__(self, version: str = "v1", system_prompt: str = None):
         self.version       = version
-        self.system_prompt = SYSTEM_PROMPTS.get(version, SYSTEM_PROMPTS["v1"])
+        self.system_prompt = system_prompt or SYSTEM_PROMPTS.get(version, SYSTEM_PROMPTS["v1"])
         self.client        = AgentAPI(x_api_key=LYZR_API_KEY, base_url=BASE_URL)
         self._env_id       = None
         self._agent_id     = None
@@ -224,6 +227,24 @@ class SimpleLyzrAgent:
 def build_traced_agent(version: str = "v1", db: BridgeDB = None) -> LyzrTracer:
     """Build a LyzrTracer-wrapped SimpleLyzrAgent."""
     agent = SimpleLyzrAgent(version=version)
+    return LyzrTracer(
+        agent=agent,
+        project="lyzr-evalops-poc",
+        agent_version=version,
+        db=db,
+    )
+
+
+def build_traced_agent_with_prompt(system_prompt: str, version: str = "v1",
+                                   db: BridgeDB = None) -> LyzrTracer:
+    """
+    Build a LyzrTracer using an explicit system prompt (loaded from DB).
+
+    Used by the live chat endpoint so prompt changes take effect immediately
+    without restarting the server — the API caches by prompt_id and calls this
+    when a new prompt is activated.
+    """
+    agent = SimpleLyzrAgent(version=version, system_prompt=system_prompt)
     return LyzrTracer(
         agent=agent,
         project="lyzr-evalops-poc",

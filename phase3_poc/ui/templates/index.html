@@ -16,33 +16,33 @@
     <table class="table-clean">
       <thead>
         <tr>
-          <th>Capability</th>
-          <th class="text-center">Baseline</th>
-          <th class="text-center">Lyzr Native</th>
-          <th class="text-center">Lyzr Evalops</th>
+          <th style="text-align: left;">Capability</th>
+          <th style="text-align: center;">LangSmith</th>
+          <th style="text-align: center;">Lyzr Native</th>
+          <th style="text-align: center;">Lyzr Evalops</th>
         </tr>
       </thead>
       <tbody>
         {% set rows = [
-          ("Automatic agent tracing", "Full", "Studio UI", "Full"),
-          ("Programmatic trace access", "Full", "Missing", "Available"),
-          ("Token counts and latency", "Full", "Studio UI", "Full"),
-          ("Feedback API", "Full", "Missing", "Available"),
+          ("Automatic agent tracing", "Full", "Studio + API", "Full"),
+          ("Programmatic trace access", "Full SDK", "API Available", "Full SDK"),
+          ("Token counts and latency", "Full", "Studio + API", "Full"),
+          ("Feedback API", "Full", "Not Public", "Available"),
           ("Evaluation dataset management", "Full", "Missing", "Available"),
           ("Trace to dataset promotion", "Full", "Missing", "Available"),
           ("LLM-as-a-judge evaluators", "Full", "Missing", "Available"),
-          ("Experiment runner", "Full", "Missing", "Available"),
-          ("Version comparison", "Full", "Missing", "Available"),
-          ("Release gating", "Manual", "Missing", "Available"),
-          ("Responsible AI controls", "Missing", "Native", "Native"),
-          ("Simulation support", "Missing", "Native", "Native"),
+          ("Code-first experiment runner", "Full", "Missing", "Available"),
+          ("Version comparison workflow", "Full", "Studio UI only", "Full"),
+          ("Automated release decisions", "Manual", "Missing", "Available"),
+          ("Responsible AI guardrails", "Missing", "Native", "Native"),
+          ("Pre-prod simulation", "Missing", "Native", "Partial"),
           ("No-code agent builder", "Missing", "Studio", "Studio")
         ] %}
         {% for cap, ls, lyzr_native, lyzr_evalops in rows %}
         <tr>
-          <td class="font-medium">{{ cap }}</td>
-          <td class="text-center">
-            {% if ls in ["Full", "Available", "Native", "Studio", "Studio UI"] %}
+          <td class="font-medium" style="text-align: left;">{{ cap }}</td>
+          <td style="text-align: center;">
+            {% if ls in ["Full", "Full SDK", "Available", "Native", "Studio", "Studio UI", "Studio + API"] %}
             <span class="badge badge-green">{{ ls }}</span>
             {% elif ls == "Manual" %}
             <span class="badge badge-yellow">{{ ls }}</span>
@@ -50,24 +50,68 @@
             <span class="badge badge-red">{{ ls }}</span>
             {% endif %}
           </td>
-          <td class="text-center">
-            {% if lyzr_native in ["Full", "Available", "Native", "Studio", "Studio UI"] %}
+          <td style="text-align: center;">
+            {% if lyzr_native in ["Full", "Available", "Native", "Studio", "Studio + API"] %}
             <span class="badge badge-green">{{ lyzr_native }}</span>
+            {% elif lyzr_native in ["API Available", "Studio UI only", "Not Public", "Partial"] %}
+            <span class="badge badge-yellow">{{ lyzr_native }}</span>
             {% else %}
             <span class="badge badge-red">{{ lyzr_native }}</span>
             {% endif %}
           </td>
-          <td class="text-center">
-            {% if lyzr_evalops in ["Full", "Available", "Native", "Studio", "Studio UI"] %}
+          <td style="text-align: center;">
+            {% if lyzr_evalops in ["Full", "Full SDK", "Available", "Native", "Studio", "Studio UI"] %}
             <span class="badge badge-teal">{{ lyzr_evalops }}</span>
-            {% else %}
+            {% elif lyzr_evalops == "Partial" %}
             <span class="badge badge-yellow">{{ lyzr_evalops }}</span>
+            {% else %}
+            <span class="badge badge-slate">{{ lyzr_evalops }}</span>
             {% endif %}
           </td>
         </tr>
         {% endfor %}
       </tbody>
     </table>
+  </div>
+</section>
+
+<section class="content-card mb-4">
+  <div class="card-section border-b border-[var(--border)]">
+    <h2 class="card-title">The Gap</h2>
+    <p class="card-description">What Lyzr has vs. what's missing</p>
+  </div>
+  <div class="card-section">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div>
+        <h3 class="text-sm font-bold text-[var(--success-text)] mb-2">✓ Lyzr Already Has</h3>
+        <ul class="text-sm text-[#3d4656] space-y-1.5 leading-relaxed">
+          <li>• Agent tracing with spans, logs, tokens, cost, latency</li>
+          <li>• Agent versions and saved configurations</li>
+          <li>• Studio-side simulation and monitoring</li>
+          <li>• Workflow routing and orchestration</li>
+          <li>• Trace APIs for some agent types</li>
+          <li>• Responsible AI guardrails and policies</li>
+        </ul>
+      </div>
+      <div>
+        <h3 class="text-sm font-bold text-[var(--danger-text)] mb-2">✗ What's Missing</h3>
+        <ul class="text-sm text-[#3d4656] space-y-1.5 leading-relaxed">
+          <li>• Code-first workflow to convert traces into eval datasets</li>
+          <li>• Programmable LLM-as-a-judge evaluator framework</li>
+          <li>• Experiment comparison with metric deltas</li>
+          <li>• Automated release decisions (promote/canary/hold/rollback)</li>
+          <li>• Unified simulation → production → eval loop</li>
+          <li>• Routing quality analytics (misroute rate, fallbacks)</li>
+        </ul>
+      </div>
+    </div>
+    <div class="mt-4 p-3 bg-[var(--info-bg)] border border-[rgba(13,124,186,0.2)] rounded-lg">
+      <p class="text-xs text-[#3d4656] leading-relaxed">
+        <strong>Key Insight:</strong> Lyzr's gap is not "no evaluation capability" — it's 
+        <strong>missing the code-first EvalOps loop</strong> that connects tracing, dataset creation, 
+        evaluator execution, version comparison, and automated release decisions in one workflow.
+      </p>
+    </div>
   </div>
 </section>
 

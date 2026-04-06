@@ -483,14 +483,21 @@ async def api_suggest_prompt():
     llm      = ChatOpenAI(model="gpt-4o-mini", temperature=0.3)
     response = llm.invoke([
         SystemMessage(content=(
-            "You are an expert AI prompt engineer. Analyze failing agent responses "
-            "and rewrite the system prompt to fix the observed issues."
+            "You are an expert AI prompt engineer. Analyze failing agent responses and their "
+            "evaluator feedback, then rewrite the system prompt to fix every observed issue.\n\n"
+            "Pay close attention to feedback about:\n"
+            "- Persona/voice (e.g. using 'we/our' vs third-person)\n"
+            "- Tone and language (conversational vs formal)\n"
+            "- Directness and friction reduction\n"
+            "- Accuracy and intent understanding\n\n"
+            "If persona failures are present, add an explicit mandatory persona rule that also "
+            "covers rephrasing of any quoted documentation or context (not just direct statements)."
         )),
         HumanMessage(content=(
             f"CURRENT SYSTEM PROMPT:\n{active['content']}\n\n"
-            f"FAILING EXAMPLES:\n{examples_text}\n\n"
-            "Write an improved system prompt that fixes the failure patterns. "
-            "Respond with ONLY the improved system prompt text."
+            f"FAILING EXAMPLES (with evaluator feedback):\n{examples_text}\n\n"
+            "Write an improved system prompt that fixes ALL failure patterns above. "
+            "Respond with ONLY the improved system prompt text, no explanation."
         ))
     ])
 
